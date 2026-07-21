@@ -224,19 +224,61 @@ function renderEventModule(k,title,scoreLabel){
  effectiveExemptions=effectiveExemptedMembers(eventId,eligibleMembers,activeRows,k,eventDate),
  exemptButParticipated=participantRows.filter(r=>rowIsExempt(eventId,r,eventDate)),
  eligible=eligibleCountAfterEffectiveExempt(eventId,baseAvailable,eligibleMembers,activeRows,k,eventDate),
- // Production standard:
- // 1. Non-exempt players remain visible even with zero points.
- // 2. Exempt players with zero points are hidden.
- // 3. Exempt players who score remain visible and count as participants.
  resultRows=activeRows.filter(r=>!rowIsExempt(eventId,r,eventDate)||rowHasParticipation(k,r)),
  participants=participantRows.length,
  total=participantRows.reduce((s,r)=>s+r._score,0),
- avg=participants?total/participants:0,
- high=Math.max(0,...participantRows.map(r=>r._score)),
  met=resultRows.filter(r=>r._target>0&&r._score>=r._target).length,
- below=resultRows.filter(r=>r._target>0&&r._score<r._target).length;
+ below=resultRows.filter(r=>r._target>0&&r._score<r._target).length,
+ underperformers=resultRows.filter(r=>r._target>0&&r._score<r._target)
+   .sort((a,b)=>(a._score/a._target)-(b._score/b._target)||(b._target-b._score)-(a._target-a._score)||a._score-b._score);
 
- $('app').innerHTML=`<section class="content-head glass"><h2>${title}</h2><p class="sub">${EXEC_COPY[k]||'Performance intelligence for the selected reporting period.'}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Participated',exemptButParticipated.length],['Eligible Members',eligible],['Participants',participants],['Participation %',pct(participants,eligible)],['Total '+scoreLabel,short(total)],['Underperformers',below]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Top 10 ${scoreLabel}</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>G-Level Performance</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div><div class="glass"><div class="panel-head"><h3>Target Achievement</h3></div><div class="panel-body"><div class="chartbox" id="c3"></div></div></div><div class="glass"><div class="panel-head"><h3>Participation Trend</h3></div><div class="panel-body"><div class="chartbox" id="c4"></div></div></div></section><section class="intel-grid">${listCard('Underperformers',resultRows.filter(r=>r._target>0&&r._score<r._target).sort((a,b)=>(a._score/a._target)-(b._score/b._target)||(b._target-b._score)-(a._target-a._score)||a._score-b._score),'Underperformers',EXEC_COPY.underperformers)}${listCard('Top Performers',[...participantRows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}</section>}`;
+ const resultsTable=tableCard(
+   'Player Results',
+   [...resultRows].sort((a,b)=>b._score-a._score||num(a._rank)-num(b._rank)),
+   ['Rank','Player','G-Level','Target',scoreLabel,'Difference','Status'],
+   r=>[
+     r._rank||'',
+     pLink(r._name),
+     esc(r._g||memberG(r._name)),
+     fmt(r._target),
+     fmt(r._score),
+     fmt(r._score-r._target),
+     statusBadge(r._status||((r._score>=r._target)?'Met Target':'Below Target'))
+   ],
+   `${resultRows.length} visible records. Zero-point exempt players are excluded; exempt players who participated remain included.`
+ );
+
+ $('app').innerHTML=`
+ <section class="content-head glass">
+   <h2>${title}</h2>
+   <p class="sub">${EXEC_COPY[k]||'Performance intelligence for the selected reporting period.'}</p>
+ </section>
+
+ <section class="kpis">${kpiHtml([
+   ['Available Members',baseAvailable],
+   ['Effective Exemptions',effectiveExemptions.length],
+   ['Exempt but Participated',exemptButParticipated.length],
+   ['Eligible Members',eligible],
+   ['Participants',participants],
+   ['Participation %',pct(participants,eligible)],
+   ['Total '+scoreLabel,short(total)],
+   ['Underperformers',below]
+ ])}</section>
+
+ <section class="chart-grid">
+   <div class="glass"><div class="panel-head"><h3>Top 10 ${scoreLabel}</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div>
+   <div class="glass"><div class="panel-head"><h3>G-Level Performance</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div>
+   <div class="glass"><div class="panel-head"><h3>Target Achievement</h3></div><div class="panel-body"><div class="chartbox" id="c3"></div></div></div>
+   <div class="glass"><div class="panel-head"><h3>Participation Trend</h3></div><div class="panel-body"><div class="chartbox" id="c4"></div></div></div>
+ </section>
+
+ ${resultsTable}
+
+ <section class="intel-grid">
+   ${listCard('Underperformers',underperformers,'Underperformers',EXEC_COPY.underperformers)}
+   ${listCard('Top Performers',[...participantRows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}
+   ${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}
+ </section>`;
 
  chartBar('c1',topObj(participantRows,'_name','_score',10));
  chartBar('c2',groupSum(participantRows,'_g','_score'));
@@ -337,7 +379,7 @@ function renderVaults(){
  });
  const mostVaultsBuilt=Object.values(vaultBuildMap).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name))).slice(0,10);
 
- $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section><section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),esc(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}`;
+ $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),esc(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
 
  chartPie('c1',levelCounts);
  chartLine('c2',eventTrend((state.data.vaults||[]).filter(r=>rowHasParticipation('vaults',r))))
