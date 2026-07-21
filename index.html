@@ -139,7 +139,7 @@ function rowIsExempt(eventId,row,eventDate){
 }
 function exemptedMembers(eventId,members,eventDate){return (members||[]).filter(m=>isPlayerExempt(eventId,m,eventDate))}
 function samePlayer(a,b){const aid=key(a?._id),bid=key(b?._id),an=key(a?._name),bn=key(b?._name);return !!((aid&&bid&&aid===bid)||(an&&bn&&an===bn))}
-function rowHasParticipation(dataset,row){if(dataset==='vaults')return !!clean(row?._name);return num(row?._score)>0}
+function rowHasParticipation(dataset,row){if(dataset==='vaults')return num(row?._vault)>0||!!clean(row?._buildTime);return num(row?._score)>0}
 function effectiveExemptedMembers(eventId,members,rows,dataset,eventDate){
  const participated=(rows||[]).filter(r=>rowHasParticipation(dataset,r));
  return (members||[]).filter(m=>isPlayerExempt(eventId,m,eventDate)&&!participated.some(r=>samePlayer(m,r)));
@@ -213,11 +213,53 @@ function growthMovementForWeek(week){const s=growthLifecycleSnapshot(week);retur
 function growthListCard(title,rows,chip,valueFn,sub){return card(title,sub,rows.length?`<ul class="list">${rows.map(r=>`<li><span>${pLink(r._name)}</span><span>${esc(r._g||memberG(r._name)||'')}</span><span>${esc(valueFn(r))}</span></li>`).join('')}</ul>`:`<div class="empty">No records.</div>`,chip)}
 function renderGrowth(){const weeks=growthWeeks(),latest=state.selected||(weeks.length?weeks[weeks.length-1]:'');const life=growthLifecycleSnapshot(latest);let analysis=filteredRows(life.current);const active=analysis.filter(r=>r._lifecycle==='Active'),newMembers=analysis.filter(r=>r._lifecycle==='New'),returned=analysis.filter(r=>r._lifecycle==='Returned'),left=state.g?life.left.filter(r=>r._g===state.g):life.left,clanMight=analysis.reduce((s,r)=>s+r._might,0),comparableGrowth=active.reduce((s,r)=>s+num(r._change),0),avgGrowth=active.length?comparableGrowth/active.length:0,development=active.filter(r=>r._might<200000000||num(r._change)<=0).sort((a,b)=>a._might-b._might||num(a._change)-num(b._change)),positive=active.filter(r=>num(r._change)>0),negative=active.filter(r=>num(r._change)<0),net=newMembers.length+returned.length-left.length;$('app').innerHTML=`<section class="content-head glass"><h2>Growth Intelligence</h2><p class="sub">Growth Raw Data is the authoritative source for membership movement, clan might and player growth. Returned players are separated from consecutive-week growth.</p></section><section class="kpis">${kpiHtml([['Selected Week',latest||'-','Current Growth Raw Data snapshot'],['Current Members',analysis.length,'Players present in selected snapshot'],['Clan Might',short(clanMight),'Total might in selected snapshot'],['Comparable Growth',short(comparableGrowth),'Consecutive-snapshot players only'],['Average Growth',short(avgGrowth),active.length+' comparable players'],['New Members',newMembers.length,'First-ever appearance'],['Returned Members',returned.length,'Present after a previous absence'],['Members Left',left.length,'Present previously, missing now'],['Net Membership',net>0?'+'+net:net,'New + returned − left'],['Below 200M',analysis.filter(r=>r._might<200000000).length,'Development pipeline']])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Clan Might Trend</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Selected Week Membership Movement</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div><div class="glass"><div class="panel-head"><h3>Top 10 Comparable Weekly Gains</h3></div><div class="panel-body"><div class="chartbox" id="c3"></div></div></div><div class="glass"><div class="panel-head"><h3>Top 10 All-Time Growth</h3></div><div class="panel-body"><div class="chartbox" id="c4"></div></div></div></section><section class="growth-intel-grid">${growthListCard('Development Focus',development.slice(0,10),'Growth Risk',r=>r._might<200000000?short(r._might):fmt(r._change),'Below 200M or no/negative comparable growth.')}${growthListCard('Returned Players',returned,'Returned',r=>r._growthLabel,'Growth since last recorded appearance; excluded from weekly leaderboard.')}${growthListCard('New Members',newMembers,'New',r=>short(r._might),'First appearance in Growth Raw Data.')}${growthListCard('Members Left',left,'Left',r=>short(r._might),'Present in previous snapshot but absent from selected snapshot.')}</section><section class="intel-grid">${listCard('Highest Improvers',[...positive].sort((a,b)=>b._change-a._change).slice(0,10),'Improvers','Consecutive-snapshot growth only.')}${listCard('Highest Decliners',[...negative].sort((a,b)=>a._change-b._change).slice(0,10),'Decliners','Actual negative comparable growth only.')}${growthListCard('Lifecycle Summary',[{_name:'Active',_g:'',_value:active.length},{_name:'New',_g:'',_value:newMembers.length},{_name:'Returned',_g:'',_value:returned.length},{_name:'Left',_g:'',_value:left.length}],'Lifecycle',r=>fmt(r._value),'Membership classification derived entirely from Growth Raw Data.')}</section>${tableCard('Player Analysis by Selected Week',analysis.sort((a,b)=>b._might-a._might),['Rank','Player','G-Level','Lifecycle','Current Might','Growth','Last Seen','Total Growth'],(r,i)=>[i+1,pLink(r._name),esc(r._g),statusBadge(r._lifecycle),fmt(r._might),esc(r._growthLabel),esc(r._lastSeen),fmt(r._total)],'Returned players show growth since their last recorded appearance. New members are not included in comparable weekly growth.')}`;chartLine('c1',growthTrend());chartBar('c2',growthMovementForWeek(latest));chartBar('c3',topObj(positive,'_name','_change',10));chartBar('c4',topObj(allTimeGrowthRows(),'_name','_growth',10))}
 function renderEventModule(k,title,scoreLabel){
- const sourceRows=selectedRows(state.data[k]||[]).filter(r=>r._name),eventId=state.selected||(sourceRows[0]?._eventId||''),meta=eventId?eventMeta(eventId):{},eventDate=eventDateFromSelection(sourceRows),eligibleMembers=filteredRows(eligibleMembersForDate(eventDate).map(m=>({...m,_g:m._g||memberG(m._name)}))),baseAvailable=state.g?eligibleMembers.length:(meta._available||sourceRows[0]?._available||eligibleMembers.length),activeRows=sourceRows.filter(r=>memberIsActiveForDate(r._name,eventDate)),effectiveExemptions=effectiveExemptedMembers(eventId,eligibleMembers,activeRows,k,eventDate),exemptButParticipated=activeRows.filter(r=>rowIsExempt(eventId,r,eventDate)&&rowHasParticipation(k,r)),eligible=eligibleCountAfterEffectiveExempt(eventId,baseAvailable,eligibleMembers,activeRows,k,eventDate),rows=activeRows.filter(r=>rowHasParticipation(k,r)),participants=rows.length,total=rows.reduce((s,r)=>s+r._score,0),avg=participants?total/participants:0,high=Math.max(0,...rows.map(r=>r._score)),met=rows.filter(r=>r._score>=r._target).length,below=rows.filter(r=>r._score<r._target).length;
- $('app').innerHTML=`<section class="content-head glass"><h2>${title}</h2><p class="sub">${EXEC_COPY[k]||'Performance intelligence for the selected reporting period.'}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Participated',exemptButParticipated.length],['Eligible Members',eligible],['Participants',participants],['Participation %',pct(participants,eligible)],['Total '+scoreLabel,short(total)],['Underperformers',below]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Top 10 ${scoreLabel}</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>G-Level Performance</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div><div class="glass"><div class="panel-head"><h3>Target Achievement</h3></div><div class="panel-body"><div class="chartbox" id="c3"></div></div></div><div class="glass"><div class="panel-head"><h3>Participation Trend</h3></div><div class="panel-body"><div class="chartbox" id="c4"></div></div></div></section><section class="intel-grid">${listCard('Underperformers',rows.filter(r=>r._score<r._target).sort((a,b)=>a._score-b._score).slice(0,10),'Underperformers',EXEC_COPY.underperformers)}${listCard('Top Performers',[...rows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}</section>${tableCard('Player Results',rows.sort((a,b)=>b._score-a._score),['Rank','Player','G-Level','Target',scoreLabel,'Difference','Status'],r=>[r._rank||'',pLink(r._name),esc(r._g||memberG(r._name)),fmt(r._target),fmt(r._score),fmt(r._score-r._target),statusBadge(r._status||((r._score>=r._target)?'Met Target':'Below Target'))])}`;
- chartBar('c1',topObj(rows,'_name','_score',10));chartBar('c2',groupSum(rows,'_g','_score'));chartPie('c3',{'Met Target':met,'Below Target':below});chartLine('c4',eventTrend((state.data[k]||[]).filter(r=>rowHasParticipation(k,r))))
+ const sourceRows=selectedRows(state.data[k]||[]).filter(r=>r._name),
+ eventId=state.selected||(sourceRows[0]?._eventId||''),
+ meta=eventId?eventMeta(eventId):{},
+ eventDate=eventDateFromSelection(sourceRows),
+ eligibleMembers=filteredRows(eligibleMembersForDate(eventDate).map(m=>({...m,_g:m._g||memberG(m._name)}))),
+ baseAvailable=state.g?eligibleMembers.length:(meta._available||sourceRows[0]?._available||eligibleMembers.length),
+ activeRows=sourceRows.filter(r=>memberIsActiveForDate(r._name,eventDate)),
+ participantRows=activeRows.filter(r=>rowHasParticipation(k,r)),
+ effectiveExemptions=effectiveExemptedMembers(eventId,eligibleMembers,activeRows,k,eventDate),
+ exemptButParticipated=participantRows.filter(r=>rowIsExempt(eventId,r,eventDate)),
+ eligible=eligibleCountAfterEffectiveExempt(eventId,baseAvailable,eligibleMembers,activeRows,k,eventDate),
+ // Production standard:
+ // 1. Non-exempt players remain visible even with zero points.
+ // 2. Exempt players with zero points are hidden.
+ // 3. Exempt players who score remain visible and count as participants.
+ resultRows=activeRows.filter(r=>!rowIsExempt(eventId,r,eventDate)||rowHasParticipation(k,r)),
+ participants=participantRows.length,
+ total=participantRows.reduce((s,r)=>s+r._score,0),
+ avg=participants?total/participants:0,
+ high=Math.max(0,...participantRows.map(r=>r._score)),
+ met=resultRows.filter(r=>r._target>0&&r._score>=r._target).length,
+ below=resultRows.filter(r=>r._target>0&&r._score<r._target).length;
+
+ $('app').innerHTML=`<section class="content-head glass"><h2>${title}</h2><p class="sub">${EXEC_COPY[k]||'Performance intelligence for the selected reporting period.'}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Participated',exemptButParticipated.length],['Eligible Members',eligible],['Participants',participants],['Participation %',pct(participants,eligible)],['Total '+scoreLabel,short(total)],['Underperformers',below]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Top 10 ${scoreLabel}</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>G-Level Performance</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div><div class="glass"><div class="panel-head"><h3>Target Achievement</h3></div><div class="panel-body"><div class="chartbox" id="c3"></div></div></div><div class="glass"><div class="panel-head"><h3>Participation Trend</h3></div><div class="panel-body"><div class="chartbox" id="c4"></div></div></div></section><section class="intel-grid">${listCard('Underperformers',resultRows.filter(r=>r._target>0&&r._score<r._target).sort((a,b)=>a._score-b._score).slice(0,10),'Underperformers',EXEC_COPY.underperformers)}${listCard('Top Performers',[...participantRows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}</section>${tableCard('Player Results',resultRows.sort((a,b)=>b._score-a._score||num(a._rank)-num(b._rank)),['Rank','Player','G-Level','Target',scoreLabel,'Difference','Status'],r=>[r._rank||'',pLink(r._name),esc(r._g||memberG(r._name)),fmt(r._target),fmt(r._score),fmt(r._score-r._target),statusBadge(r._status||((r._score>=r._target)?'Met Target':'Below Target'))],`${resultRows.length} visible records. Zero-point exempt players are excluded; exempt players who participated remain included.`)}`;
+
+ chartBar('c1',topObj(participantRows,'_name','_score',10));
+ chartBar('c2',groupSum(participantRows,'_g','_score'));
+ chartPie('c3',{'Met Target':met,'Below Target':below});
+ chartLine('c4',eventTrend((state.data[k]||[]).filter(r=>rowHasParticipation(k,r))))
 }
-function repeatUnder(k,eventId=''){const map={};(state.data[k]||[]).forEach(r=>{if(!rowHasParticipation(k,r))return;if(r._target&&r._score<r._target){let kk=key(r._name);map[kk]=map[kk]||{_name:r._name,_g:r._g,_score:0};map[kk]._score++}});return Object.values(map).sort((a,b)=>b._score-a._score)}
+function repeatUnder(k,eventId=''){
+ const map={};
+ (state.data[k]||[]).forEach(r=>{
+  if(!clean(r._name)||r._target<=0)return;
+  const rowEventId=clean(r._eventId)||clean(eventId);
+  const rowEventDate=parseAnyDate(eventMeta(rowEventId)._date)||parseAnyDate(r._event);
+  const participated=rowHasParticipation(k,r);
+  // Exempt non-participants do not count as underperformers.
+  if(rowIsExempt(rowEventId,r,rowEventDate)&&!participated)return;
+  if(r._score<r._target){
+   const kk=key(r._name);
+   map[kk]=map[kk]||{_name:r._name,_g:r._g,_score:0};
+   map[kk]._score++;
+  }
+ });
+ return Object.values(map).sort((a,b)=>b._score-a._score)
+}
 
 function parseAnyDate(v){v=clean(v);if(!v)return null;let d=new Date(v);if(!isNaN(d))return d;let m=v.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=v.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);return null}
 function eventDateFromSelection(rows){let meta=state.selected?eventMeta(state.selected):{};return parseAnyDate(meta._date)||parseAnyDate(rows.find(r=>r._event)?._event)||null}
@@ -225,15 +267,80 @@ function eligibleMembersForDate(eventDate){if(!eventDate)return activeRosterMemb
 function updateHealthWarnings(){const failed=Object.entries(LIVE_STATUS).filter(([k,v])=>v&&v.status!=='Loaded');const el=$('warningBanner');if(!el)return;if(!failed.length){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');el.innerHTML='⚠ Some live Google Sheets did not return usable data: '+failed.map(([k])=>esc(k)).join(', ')+'. Other modules continue to work.'}
 
 function renderVaults(){
- const sourceRows=selectedRows(state.data.vaults||[]),eventId=state.selected||(sourceRows[0]?._eventId||''),meta=eventId?eventMeta(eventId):{},eventDate=eventDateFromSelection(sourceRows),eligibleMembers=filteredRows(eligibleMembersForDate(eventDate).map(m=>({...m,_g:m._g||memberG(m._name)}))),baseAvailable=state.g?eligibleMembers.length:(meta._available||sourceRows[0]?._available||eligibleMembers.length);
- const normVaultKey=v=>clean(v).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');const vaultKeys=o=>[key(o?._id),key(o?._name),normVaultKey(o?._id),normVaultKey(o?._name)].filter(Boolean);const hasAnyKey=(set,o)=>vaultKeys(o).some(k=>set.has(k));const addKeys=(set,o)=>vaultKeys(o).forEach(k=>set.add(k));
- const validRows=sourceRows.filter(r=>r._name&&memberIsActiveForDate(r._name,eventDate)),builderMap={},builtKeys=new Set();
- validRows.forEach(r=>{const uniqueKey=normVaultKey(r._name)||key(r._name)||key(r._id);if(!uniqueKey)return;if(!builderMap[uniqueKey])builderMap[uniqueKey]=r;addKeys(builtKeys,r)});
- const rows=Object.values(builderMap),built=rows.length,effectiveExemptions=effectiveExemptedMembers(eventId,eligibleMembers,validRows,'vaults',eventDate),exemptButParticipated=rows.filter(r=>rowIsExempt(eventId,r,eventDate)),eligible=eligibleCountAfterEffectiveExempt(eventId,baseAvailable,eligibleMembers,validRows,'vaults',eventDate),nonBuilders=Math.max(0,eligible-built),levels=rows.map(r=>r._vault).filter(Boolean),levelCounts=groupCount(rows,'_vault');
- let nonBuilderList=(eligibleMembers||[]).filter(m=>!effectiveExemptions.some(x=>samePlayer(x,m))).filter(m=>!hasAnyKey(builtKeys,m)).map(m=>({_name:m._name,_g:m._g,_score:m._vault||0})).slice(0,nonBuilders);
- const currentEligibleKeys=new Set();activeRosterMembers().forEach(m=>vaultKeys(m).forEach(k=>currentEligibleKeys.add(k)));const vaultBuildMap={};(state.data.vaults||[]).forEach(r=>{if(!r._name)return;if(!vaultKeys(r).some(k=>currentEligibleKeys.has(k)))return;const kk=normVaultKey(r._name)||key(r._name);if(!vaultBuildMap[kk])vaultBuildMap[kk]={_name:r._name,_g:r._g||memberG(r._name),_score:0};vaultBuildMap[kk]._score++});const mostVaultsBuilt=Object.values(vaultBuildMap).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name))).slice(0,10);
- $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section><section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>${tableCard('Vault History',rows,['Rank','Player','G-Level','Vault Level'],r=>[r._rank||'',pLink(r._name),esc(r._g||memberG(r._name)),fmt(r._vault)])}`;
- chartPie('c1',levelCounts);chartLine('c2',eventTrend(state.data.vaults||[]))
+ const sourceRows=selectedRows(state.data.vaults||[]),
+ eventId=state.selected||(sourceRows[0]?._eventId||''),
+ meta=eventId?eventMeta(eventId):{},
+ eventDate=eventDateFromSelection(sourceRows),
+ eligibleMembers=filteredRows(eligibleMembersForDate(eventDate).map(m=>({...m,_g:m._g||memberG(m._name)}))),
+ baseAvailable=state.g?eligibleMembers.length:(meta._available||sourceRows[0]?._available||eligibleMembers.length);
+
+ const normVaultKey=v=>clean(v).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');
+ const vaultKeys=o=>[key(o?._id),key(o?._name),normVaultKey(o?._id),normVaultKey(o?._name)].filter(Boolean);
+ const hasAnyKey=(set,o)=>vaultKeys(o).some(k=>set.has(k));
+ const addKeys=(set,o)=>vaultKeys(o).forEach(k=>set.add(k));
+ const uniqueKey=o=>normVaultKey(o?._id)||normVaultKey(o?._name)||key(o?._id)||key(o?._name);
+
+ const activeRows=sourceRows.filter(r=>r._name&&memberIsActiveForDate(r._name,eventDate));
+ const buildRows=activeRows.filter(r=>rowHasParticipation('vaults',r));
+ const builderMap={},builtKeys=new Set();
+
+ buildRows.forEach(r=>{
+  const k=uniqueKey(r);
+  if(!k)return;
+  if(!builderMap[k]||num(r._vault)>num(builderMap[k]._vault))builderMap[k]=r;
+  addKeys(builtKeys,r);
+ });
+
+ const builders=Object.values(builderMap);
+ const effectiveExemptions=effectiveExemptedMembers(eventId,eligibleMembers,activeRows,'vaults',eventDate);
+ const exemptButParticipated=builders.filter(r=>rowIsExempt(eventId,r,eventDate));
+ const eligible=eligibleCountAfterEffectiveExempt(eventId,baseAvailable,eligibleMembers,activeRows,'vaults',eventDate);
+
+ // Non-exempt eligible members without a recorded build remain visible as missing builders.
+ const nonBuilderMembers=eligibleMembers
+  .filter(m=>!isPlayerExempt(eventId,m,eventDate))
+  .filter(m=>!hasAnyKey(builtKeys,m));
+
+ const resultMap={};
+ builders.forEach(r=>{const k=uniqueKey(r);if(k)resultMap[k]={...r,_vaultStatus:'Built'}});
+ nonBuilderMembers.forEach(m=>{
+  const k=uniqueKey(m);
+  if(k&&!resultMap[k])resultMap[k]={
+   _rank:'',
+   _name:m._name,
+   _id:m._id,
+   _g:m._g,
+   _vault:0,
+   _eventId:eventId,
+   _event:meta._date||'',
+   _vaultStatus:'Missing'
+  };
+ });
+
+ const resultRows=Object.values(resultMap);
+ const built=builders.length;
+ const nonBuilders=nonBuilderMembers.length;
+ const levels=builders.map(r=>r._vault).filter(v=>v>0);
+ const levelCounts=groupCount(builders,'_vault');
+
+ const nonBuilderList=nonBuilderMembers.map(m=>({_name:m._name,_g:m._g,_score:0}));
+
+ const currentEligibleKeys=new Set();
+ activeRosterMembers().forEach(m=>vaultKeys(m).forEach(k=>currentEligibleKeys.add(k)));
+ const vaultBuildMap={};
+ (state.data.vaults||[]).forEach(r=>{
+  if(!r._name||!rowHasParticipation('vaults',r))return;
+  if(!vaultKeys(r).some(k=>currentEligibleKeys.has(k)))return;
+  const kk=uniqueKey(r);
+  if(!vaultBuildMap[kk])vaultBuildMap[kk]={_name:r._name,_g:r._g||memberG(r._name),_score:0};
+  vaultBuildMap[kk]._score++;
+ });
+ const mostVaultsBuilt=Object.values(vaultBuildMap).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name))).slice(0,10);
+
+ $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section><section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),esc(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}`;
+
+ chartPie('c1',levelCounts);
+ chartLine('c2',eventTrend((state.data.vaults||[]).filter(r=>rowHasParticipation('vaults',r))))
 }
 
 function exemptionScopeLabel(x){return clean(x._eventId)?(clean(x._eventName)||clean(x._eventId)):'All Events'}
