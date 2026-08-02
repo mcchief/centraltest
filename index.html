@@ -28,6 +28,10 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .list{list-style:none;margin:0;padding:0}.list li{display:grid;grid-template-columns:minmax(0,1fr) 100px 110px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}.empty{padding:22px;border:1px dashed var(--line);border-radius:18px;color:#d7ebff;background:rgba(255,255,255,.035);line-height:1.6}
 .barwrap{display:flex;align-items:end;gap:10px;height:100%;padding:12px}.baritem{flex:1;min-width:36px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;height:100%}.bar{border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,rgba(56,189,248,.85),rgba(167,139,250,.65));border:1px solid rgba(255,255,255,.18)}.barlabel{font-size:10px;color:#d7ebff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tooltip{position:fixed;z-index:2000;display:none;pointer-events:none;max-width:260px;padding:10px 12px;border-radius:14px;border:1px solid rgba(148,197,253,.35);background:rgba(7,18,35,.96);box-shadow:0 18px 45px rgba(0,0,0,.45);color:#f7fbff;font-size:12px;line-height:1.45}.tooltip b{display:block;font-size:13px;margin-bottom:4px;color:#fff}.tooltip .muted{color:#b8d7f5}
 .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.78);backdrop-filter:blur(8px);z-index:999;padding:14px}.modal.show{display:flex}.modal-card{width:min(1320px,100%);max-height:94vh;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(14,27,50,.985),rgba(8,18,36,.985));box-shadow:0 26px 80px rgba(0,0,0,.5)}.modal-head{display:flex;justify-content:space-between;gap:12px;padding:18px 20px 12px;border-bottom:1px solid rgba(255,255,255,.08)}.modal-title{font-size:26px}.modal-body{padding:16px 20px 20px;overflow:auto;max-height:calc(94vh - 88px)}.close{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;font-size:22px;font-weight:900;cursor:pointer}.profile-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}.profile-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}.profile-tabs .tab{padding:8px 12px}
+.performance-score{display:inline-flex;align-items:center;justify-content:center;min-width:64px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:900;border:1px solid currentColor;background:rgba(255,255,255,.06)}
+.performance-score.high{color:#9ff0c7}.performance-score.mid{color:#ffe68a}.performance-score.low{color:#ffb6c0}.performance-score.limited{color:#cbd5e1}
+.matrix-cell{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:900}
+.matrix-cell.met{color:#9ff0c7;background:rgba(56,217,150,.13)}.matrix-cell.fail{color:#ffb6c0;background:rgba(255,107,125,.13)}.matrix-cell.na{color:#cbd5e1;background:rgba(148,163,184,.12)}
 @media(max-width:1350px){.top{grid-template-columns:1fr}.hero,.chart-grid{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
 </style></head><body>
 <div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Intelligence Dashboard V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Synchronizing live clan data...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Dashboard</div><h1>WoA Intelligence Platform</h1><p>Track clan performance, participation and player progress across all events.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
@@ -88,7 +92,7 @@ function mapGrowth(r){return{_name:field(r,['Player Name','Official Player Name'
 function mapStatusHistory(r){const ev=field(r,['Event Date','Date','Week']); return{_name:field(r,['Player Name','Official Player Name','Name','Player']),_event:ev,_eventId:field(r,['Event ID','EventID']),_eventName:field(r,['Event Name','Name','Event']),_g:field(r,['G-Level','G Level','Current G-Level']),_target:num(field(r,['Target','Required','Minimum'])),_score:num(field(r,['Result / Score','Score','Points','Essence','Result','Value'])),_status:field(r,['Status','Current Status','Result Status'])}}
 function mapEventExemption(r){return{_eventId:field(r,['Event ID','EventID','Event Id']),_event:field(r,['Event Date','Date','Week']),_eventName:field(r,['Event Name','Name','Event','Event Type']),_id:field(r,['Player ID','ID','Player Id']),_name:field(r,['Player Name','Official Player Name','Name','Player']),_reason:field(r,['Reason','Exemption Reason','Notes','Comment']),_fromDate:field(r,['From Date','Start Date','Date From','Exemption From']),_toDate:field(r,['To Date','End Date','Date To','Exemption To']),_status:field(r,['Status','Exemption Status','Current Status'])||'Active'}}
 async function initLive(){try{document.getElementById('searchMsg').textContent='Synchronizing live clan data...';document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Loading Live Data</h2><p class="sub">Connecting to the live WoA Master Workbook.</p></section>';const raw={};await Promise.all(Object.entries(CONFIG).map(async([k,u])=>{raw[k]=await loadSheet(k,u)}));let liveGrowth=(raw.growth||[]);if(!liveGrowth.length&&Array.isArray(GROWTH_FALLBACK)&&GROWTH_FALLBACK.length){liveGrowth=GROWTH_FALLBACK;LIVE_STATUS.growth={status:'Loaded from workbook fallback',rows:liveGrowth.length,error:'Live Growth sheet returned no rows; using embedded workbook snapshot.'}}state.data={settings:raw.settings||[],members:(raw.members||[]).map(mapMember).filter(r=>r._name),eventSetup:(raw.eventSetup||[]).map(mapEventSetup).filter(r=>r._id||r._name),growthRaw:liveGrowth.map(mapGrowth).filter(r=>r._name&&r._week&&r._might>0),tinman:(raw.tinman||[]).map(mapEventRow).filter(r=>r._name),darkOmens:(raw.darkOmens||[]).map(mapEventRow).filter(r=>r._name),trials:(raw.trials||[]).map(mapEventRow).filter(r=>r._name),ragnarok:(raw.ragnarok||[]).map(mapEventRow).filter(r=>r._name),chestpoints:(raw.chestpoints||[]).map(mapEventRow).filter(r=>r._name),vaults:(raw.vaults||[]).map(mapEventRow).filter(r=>r._name),playerStatusHistory:(raw.playerStatusHistory||[]).map(mapStatusHistory).filter(r=>r._name),eventExemptions:(raw.eventExemptions||[]).map(mapEventExemption).filter(r=>(r._id||r._name)&&r._reason)};setupControls();renderAll();updateHealthWarnings();document.getElementById('searchMsg').textContent='Live clan data synchronized.'}catch(e){document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Startup Error</h2><p class="sub">'+esc(e.message)+'</p></section>';console.error(e)}}
-const MODULES=[['overview','🏠 Overview'],['growth','📈 Growth'],['tinman','⚔ Tinman'],['darkOmens','🌑 Dark Omens'],['trials','🏛 Trials'],['ragnarok','🪓 Ragnarök'],['chestpoints','🎯 Chest Points'],['vaults','🏰 Vaults'],['exemptions','🛡 Exemptions']];
+const MODULES=[['overview','🏠 Overview'],['growth','📈 Growth'],['consolidated','🏆 Consolidated Performance'],['tinman','⚔ Tinman'],['darkOmens','🌑 Dark Omens'],['trials','🏛 Trials'],['ragnarok','🪓 Ragnarök'],['chestpoints','🎯 Chest Points'],['vaults','🏰 Vaults'],['exemptions','🛡 Exemptions']];
 const state={module:'overview',selected:'',g:'',profileTab:'summary',player:'',data:{}};
 const $=id=>document.getElementById(id); const clean=s=>(s??'').toString().trim(); const key=s=>clean(s).toUpperCase().replace(/\s+/g,''); const num=v=>{let n=parseFloat(clean(v).replace(/,/g,''));return isNaN(n)?0:n}; const fmt=n=>Number(num(n)||0).toLocaleString(); const pct=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'0%'; const short=n=>{n=num(n); if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B'; if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M'; if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+'K'; return fmt(n)}; const esc=s=>clean(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); const escAttr=s=>esc(s).replace(/'/g,'&#39;');
 const gClass=g=>{g=clean(g).toUpperCase();return /^G[4-9]$/.test(g)?g.toLowerCase():'gunknown'};
@@ -173,7 +177,7 @@ function kpiHtml(items){return items.map((x,i)=>`<div class="kpi ${['info','good
 function listCard(title,rows,chip,sub='Leadership focus for this selection.'){return card(title,sub,rows.length?`<ul class="list">${rows.map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g||memberG(r._name)||'')}</span><span>${fmt(r._score??r._change??r._growth??r._value??0)}</span></li>`).join('')}</ul>`:`<div class="empty">No records.</div>`,chip)}
 function groupCount(rows,prop){const o={};rows.forEach(r=>{const k=clean(r[prop])||'Unknown';o[k]=(o[k]||0)+1});return o} function groupSum(rows,prop,val){const o={};rows.forEach(r=>{const k=clean(r[prop])||'Unknown';o[k]=(o[k]||0)+num(r[val])});return o} function topObj(rows,labelProp,valProp,n=10){return Object.fromEntries(rows.map(r=>[r[labelProp],num(r[valProp])]).filter(x=>x[0]).sort((a,b)=>b[1]-a[1]).slice(0,n))} function allTimeGrowthRows(){const by={};(state.data.growthRaw||[]).forEach(r=>{const kk=key(r._name); if(!kk||!r._week)return; by[kk]=by[kk]||{_name:r._name,_g:memberG(r._name),_firstWeek:r._week,_lastWeek:r._week,_first:r._might,_last:r._might,_growth:0}; if(String(r._week).localeCompare(String(by[kk]._firstWeek))<0){by[kk]._firstWeek=r._week;by[kk]._first=r._might} if(String(r._week).localeCompare(String(by[kk]._lastWeek))>0){by[kk]._lastWeek=r._week;by[kk]._last=r._might}}); return Object.values(by).map(x=>({...x,_growth:x._last-x._first})).filter(x=>x._firstWeek!==x._lastWeek)} function eventTrend(rows){const o={};rows.forEach(r=>{const k=r._event;if(k)o[k]=(o[k]||0)+1});return o} function growthTrend(){const o={};(state.data.growthRaw||[]).forEach(r=>{o[r._week]=(o[r._week]||0)+r._might});return o}
 function chartBar(id,obj){const host=$(id);if(!host)return;const e=Object.entries(obj).filter(x=>x[1]!==undefined).slice(0,12);if(!e.length){host.innerHTML='<div class="empty">No data available.</div>';return}const max=Math.max(...e.map(x=>Math.abs(num(x[1]))),1);host.innerHTML=`<div class="barwrap">${e.map(([l,v])=>`<div class="baritem" data-title="${escAttr(l)}" data-value="${fmt(v)}"><div class="bar" style="height:${Math.max(4,Math.abs(num(v))/max*82)}%;${/^G[4-9]$/i.test(clean(l))?`background:${gColor(l)};box-shadow:0 0 18px color-mix(in srgb,${gColor(l)} 35%,transparent);`:''}"></div><div class="barlabel">${esc(l)}</div></div>`).join('')}</div>`;host.querySelectorAll('.baritem').forEach(el=>{el.onmousemove=e=>showTip(tipHtml(el.dataset.title,[['Value',el.dataset.value]]),e.clientX,e.clientY);el.onmouseleave=hideTip})} function chartPie(id,obj){const host=$(id);if(!host)return;const e=Object.entries(obj).filter(x=>num(x[1])>0);if(!e.length){host.innerHTML='<div class="empty">No data available.</div>';return}const total=e.reduce((s,x)=>s+num(x[1]),0);host.innerHTML='<div style="display:grid;gap:9px;padding:12px">'+e.map(([l,v])=>{const pc=total?num(v)/total*100:0;return `<div><div style="display:flex;justify-content:space-between;font-size:12px;color:#d7ebff"><span>${esc(l)}</span><b>${fmt(v)} (${pc.toFixed(1)}%)</b></div><div style="height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden"><div style="height:100%;width:${pc}%;background:${/^G[4-9]$/i.test(clean(l))?gColor(l):'linear-gradient(90deg,rgba(56,189,248,.85),rgba(167,139,250,.7))'}"></div></div></div>`}).join('')+'</div>'} function chartLine(id,obj){const host=$(id);if(!host)return;const e=Object.entries(obj);if(!e.length){host.innerHTML='<div class="empty">No data available.</div>';return}const w=900,h=260,p=32,vals=e.map(x=>num(x[1])),min=Math.min(...vals),max=Math.max(...vals),span=max-min||1,pts=e.map((x,i)=>[p+(e.length===1?w/2:(i*(w-2*p)/(e.length-1))),h-p-((num(x[1])-min)/span)*(h-2*p)]);host.innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" preserveAspectRatio="none"><polyline fill="none" stroke="rgba(56,189,248,.95)" stroke-width="4" points="${pts.map(p=>p.join(',')).join(' ')}"/><g>${pts.map((p,i)=>`<circle class="linept" data-title="${escAttr(e[i][0])}" data-value="${fmt(e[i][1])}" cx="${p[0]}" cy="${p[1]}" r="5" fill="rgba(167,139,250,.95)"></circle>`).join('')}</g></svg><div style="display:flex;justify-content:space-between;color:#d7ebff;font-size:11px;margin-top:-20px;padding:0 10px"><span>${esc(e[0][0])}</span><span>${esc(e[e.length-1][0])}</span></div>`;host.querySelectorAll('.linept').forEach(el=>{el.onmousemove=e=>showTip(tipHtml(el.dataset.title,[['Value',el.dataset.value]]),e.clientX,e.clientY);el.onmouseleave=hideTip})}
-function setupControls(){const gs=[...new Set(state.data.members.map(m=>m._g).filter(Boolean))].sort((a,b)=>num(a.replace('G',''))-num(b.replace('G','')));$('gFilter').innerHTML='<option value="">All G-Levels</option>'+gs.map(g=>`<option>${esc(g)}</option>`).join('');$('suggestions').innerHTML=state.data.members.map(m=>`<option value="${esc(m._name)}"></option>`).join('')} function renderShell(){const tabs=$('tabs');tabs.innerHTML=MODULES.map(m=>`<button class="tab ${m[0]===state.module?'active':''}" data-module="${m[0]}">${m[1]}</button>`).join('');tabs.onclick=e=>{if(e.target.dataset.module){state.module=e.target.dataset.module;state.selected='';renderAll()}};$('searchBtn').onclick=doSearch;$('search').onkeydown=e=>{if(e.key==='Enter')doSearch()};$('closeModal').onclick=()=>$('modal').classList.remove('show');$('gFilter').onchange=e=>{state.g=e.target.value;renderAll()};$('eventSelect').onchange=e=>{state.selected=e.target.value;renderAll()}} function renderEventSelector(){let vals=[];if(state.module==='exemptions'){if(!state.selected)state.selected='status:active';const ranges=exemptionRangeOptions();$('eventSelect').innerHTML=[['status:active','Current / Active'],['status:scheduled','Scheduled'],['status:expired','Expired'],['status:all','All History'],...ranges].map(([v,l])=>`<option value="${escAttr(v)}" ${v===state.selected?'selected':''}>${esc(l)}</option>`).join('');return}if(state.module==='growth'||state.module==='overview')vals=[...new Set(state.data.growthRaw.map(r=>r._week))].sort();else if(state.data[state.module])vals=[...new Set(state.data[state.module].map(r=>r._eventId||r._event).filter(Boolean))].sort();if(!state.selected||!vals.includes(state.selected))state.selected=(vals.length?vals[vals.length-1]:'');$('eventSelect').innerHTML='<option value="">All</option>'+vals.map(v=>`<option ${v===state.selected?'selected':''}>${esc(v)}</option>`).join('')}
+function setupControls(){const gs=[...new Set(state.data.members.map(m=>m._g).filter(Boolean))].sort((a,b)=>num(a.replace('G',''))-num(b.replace('G','')));$('gFilter').innerHTML='<option value="">All G-Levels</option>'+gs.map(g=>`<option>${esc(g)}</option>`).join('');$('suggestions').innerHTML=state.data.members.map(m=>`<option value="${esc(m._name)}"></option>`).join('')} function renderShell(){const tabs=$('tabs');tabs.innerHTML=MODULES.map(m=>`<button class="tab ${m[0]===state.module?'active':''}" data-module="${m[0]}">${m[1]}</button>`).join('');tabs.onclick=e=>{if(e.target.dataset.module){state.module=e.target.dataset.module;state.selected='';renderAll()}};$('searchBtn').onclick=doSearch;$('search').onkeydown=e=>{if(e.key==='Enter')doSearch()};$('closeModal').onclick=()=>$('modal').classList.remove('show');$('gFilter').onchange=e=>{state.g=e.target.value;renderAll()};$('eventSelect').onchange=e=>{state.selected=e.target.value;renderAll()}} function renderEventSelector(){let vals=[];if(state.module==='consolidated'){$('eventSelect').innerHTML='<option value="">All Recorded Events</option>';state.selected='';return}if(state.module==='exemptions'){if(!state.selected)state.selected='status:active';const ranges=exemptionRangeOptions();$('eventSelect').innerHTML=[['status:active','Current / Active'],['status:scheduled','Scheduled'],['status:expired','Expired'],['status:all','All History'],...ranges].map(([v,l])=>`<option value="${escAttr(v)}" ${v===state.selected?'selected':''}>${esc(l)}</option>`).join('');return}if(state.module==='growth'||state.module==='overview')vals=[...new Set(state.data.growthRaw.map(r=>r._week))].sort();else if(state.data[state.module])vals=[...new Set(state.data[state.module].map(r=>r._eventId||r._event).filter(Boolean))].sort();if(!state.selected||!vals.includes(state.selected))state.selected=(vals.length?vals[vals.length-1]:'');$('eventSelect').innerHTML='<option value="">All</option>'+vals.map(v=>`<option ${v===state.selected?'selected':''}>${esc(v)}</option>`).join('')}
 function allEventRows(){return ['tinman','darkOmens','trials','ragnarok','chestpoints','vaults'].flatMap(k=>state.data[k]||[])}
 function growthWeeks(){return [...new Set((state.data.growthRaw||[]).map(r=>r._week).filter(Boolean))].sort()}
 function latestGrowthWeek(){const w=growthWeeks();return w.length?w[w.length-1]:''}
@@ -201,6 +205,7 @@ function tipHtml(title, rows){return `<b>${esc(title)}</b>`+rows.map(r=>`<div><s
 const EXEC_COPY={
  overview:'Current clan status and overall performance.',
  growth:'Track player growth and identify members needing attention.',
+ consolidated:'Leadership view of players who perform consistently or underperform repeatedly across all eligible events.',
  tinman:'Tinman participation, targets and top performers.',
  darkOmens:'Dark Omens participation and essence performance.',
  trials:'Trials participation, targets and player rankings.',
@@ -350,6 +355,180 @@ function parseAnyDate(v){v=clean(v);if(!v)return null;let d=new Date(v);if(!isNa
 function eventDateFromSelection(rows){let meta=state.selected?eventMeta(state.selected):{};return parseAnyDate(meta._date)||parseAnyDate(rows.find(r=>r._event)?._event)||null}
 function eligibleMembersForDate(eventDate){if(!eventDate)return activeRosterMembers();return state.data.members.filter(m=>{const join=parseAnyDate(m._join),left=parseAnyDate(m._left);if(join&&join>eventDate)return false;if(/removed|inactive|pending/i.test(m._status))return false;if(left&&left<eventDate)return false;if(/left/i.test(m._status)&&!left)return false;return true})}
 function updateHealthWarnings(){const failed=Object.entries(LIVE_STATUS).filter(([k,v])=>v&&v.status!=='Loaded');const el=$('warningBanner');if(!el)return;if(!failed.length){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');el.innerHTML='⚠ Some live Google Sheets did not return usable data: '+failed.map(([k])=>esc(k)).join(', ')+'. Other modules continue to work.'}
+
+
+const CONSOLIDATED_EVENTS=[
+ {key:'tinman',label:'Tinman',short:'Tinman',type:'score'},
+ {key:'darkOmens',label:'Dark Omens',short:'Dark Omens',type:'score'},
+ {key:'trials',label:'Trials of Olympus',short:'Trials',type:'score'},
+ {key:'ragnarok',label:'Ragnarök',short:'Ragnarök',type:'score'},
+ {key:'chestpoints',label:'Chest Points',short:'Chest',type:'score'},
+ {key:'vaults',label:'Vaults',short:'Vaults',type:'vault'}
+];
+
+function consolidatedBadge(label){
+ const cls=label==='Consistent Performer'?'met':label==='Consistent Underperformer'?'fail':label==='Mixed Performance'?'warnb':'expired';
+ return `<span class="badge ${cls}">${esc(label)}</span>`;
+}
+function scorePill(rate,limited=false){
+ const cls=limited?'limited':rate>=80?'high':rate<=40?'low':'mid';
+ return `<span class="performance-score ${cls}">${limited?'Limited':rate.toFixed(1)+'%'}</span>`;
+}
+function matrixCell(stat){
+ if(!stat||!stat.eligible)return '<span class="matrix-cell na">—</span>';
+ const rate=stat.success/stat.eligible*100;
+ const cls=rate>=80?'met':rate<=40?'fail':'na';
+ return `<span class="matrix-cell ${cls}">${rate.toFixed(0)}%</span>`;
+}
+function eventGroupKey(row){
+ return clean(row?._eventId)||clean(row?._event)||'Unknown Event';
+}
+function eventGroupDate(groupRows,eventId){
+ return parseAnyDate(eventMeta(eventId)._date)||parseAnyDate((groupRows||[]).find(r=>r._event)?._event)||null;
+}
+function bestPlayerRow(rows,member,dataset){
+ const matches=(rows||[]).filter(r=>samePlayer(r,member));
+ if(!matches.length)return null;
+ if(dataset==='vaults')return matches.sort((a,b)=>num(b._vault)-num(a._vault))[0];
+ return matches.sort((a,b)=>num(b._score)-num(a._score))[0];
+}
+function consolidatedPerformanceRows(){
+ let roster=activeRosterMembers().map(m=>({...m,_g:m._g||memberG(m._name)}));
+ if(state.g)roster=roster.filter(m=>m._g===state.g);
+
+ const result=new Map(roster.map(m=>[key(m._id||m._name),{
+  _id:m._id,_name:m._name,_g:m._g,_status:m._status,
+  _success:0,_fail:0,_eligible:0,_eventTypes:new Set(),_events:{}
+ }]));
+
+ CONSOLIDATED_EVENTS.forEach(cfg=>{
+  const rows=(state.data[cfg.key]||[]).filter(r=>clean(r._name));
+  const groups=new Map();
+  rows.forEach(r=>{
+   const gk=eventGroupKey(r);
+   if(!groups.has(gk))groups.set(gk,[]);
+   groups.get(gk).push(r);
+  });
+
+  groups.forEach((groupRows,eventId)=>{
+   const eventDate=eventGroupDate(groupRows,eventId);
+   const meta=eventMeta(eventId);
+   roster.forEach(member=>{
+    if(!memberIsActiveForDate(member._name,eventDate))return;
+    const row=bestPlayerRow(groupRows,member,cfg.key);
+    const participated=row?rowHasParticipation(cfg.key,row):false;
+    if(isPlayerExempt(eventId,member,eventDate)&&!participated)return;
+
+    let eligible=false,success=false;
+    if(cfg.type==='vault'){
+     eligible=true;
+     success=!!row&&rowHasParticipation('vaults',row);
+    }else{
+     const target=num(row?._target)||num(meta._target);
+     if(target<=0)return;
+     eligible=true;
+     success=!!row&&num(row._score)>=target;
+    }
+    if(!eligible)return;
+
+    const rk=key(member._id||member._name),rec=result.get(rk);
+    if(!rec)return;
+    rec._eligible++;
+    rec._eventTypes.add(cfg.key);
+    rec._events[cfg.key]=rec._events[cfg.key]||{eligible:0,success:0,fail:0};
+    rec._events[cfg.key].eligible++;
+    if(success){
+     rec._success++;
+     rec._events[cfg.key].success++;
+    }else{
+     rec._fail++;
+     rec._events[cfg.key].fail++;
+    }
+   });
+  });
+ });
+
+ return [...result.values()].map(r=>{
+  const coverage=r._eventTypes.size;
+  const rate=r._eligible?r._success/r._eligible*100:0;
+  const limited=r._eligible<5||coverage<3;
+  const classification=limited?'Limited Data':rate>=80?'Consistent Performer':rate<=40?'Consistent Underperformer':'Mixed Performance';
+  return {...r,_coverage:coverage,_rate:rate,_limited:limited,_classification:classification};
+ });
+}
+function renderConsolidatedPerformance(){
+ const rows=consolidatedPerformanceRows();
+ const performers=rows.filter(r=>r._classification==='Consistent Performer').sort((a,b)=>b._rate-a._rate||b._eligible-a._eligible||String(a._name).localeCompare(String(b._name)));
+ const under=rows.filter(r=>r._classification==='Consistent Underperformer').sort((a,b)=>a._rate-b._rate||b._eligible-a._eligible||String(a._name).localeCompare(String(b._name)));
+ const mixed=rows.filter(r=>r._classification==='Mixed Performance');
+ const limited=rows.filter(r=>r._classification==='Limited Data');
+ const eligibleRecords=rows.reduce((s,r)=>s+r._eligible,0);
+ const successfulRecords=rows.reduce((s,r)=>s+r._success,0);
+ const overallRate=eligibleRecords?successfulRecords/eligibleRecords*100:0;
+ const classificationCounts={
+  'Consistent Performer':performers.length,
+  'Mixed Performance':mixed.length,
+  'Consistent Underperformer':under.length,
+  'Limited Data':limited.length
+ };
+ const byG={};
+ rows.filter(r=>!r._limited&&r._eligible>0).forEach(r=>{
+  const g=r._g||'Unknown';
+  byG[g]=byG[g]||{success:0,eligible:0};
+  byG[g].success+=r._success;
+  byG[g].eligible+=r._eligible;
+ });
+ const byGRate=Object.fromEntries(Object.entries(byG).map(([g,v])=>[g,v.eligible?v.success/v.eligible*100:0]));
+ const ranked=rows.filter(r=>!r._limited).sort((a,b)=>b._rate-a._rate||b._eligible-a._eligible);
+ const bottom=[...ranked].sort((a,b)=>a._rate-b._rate||b._eligible-a._eligible);
+
+ $('app').innerHTML=`
+ <section class="content-head glass">
+  <h2>Consolidated Performance</h2>
+  <p class="sub">Cross-event consistency across Tinman, Dark Omens, Trials, Ragnarök, Chest Points and Vaults. Only current active members are ranked; each historical result counts only when the player was eligible on that event date. Valid exempt non-participation is excluded.</p>
+ </section>
+
+ <section class="kpis">${kpiHtml([
+  ['Players Assessed',rows.length,'Current active roster'],
+  ['Consistent Performers',performers.length,'80%+ success, at least 5 records across 3 event types'],
+  ['Mixed Performance',mixed.length,'Between performer and underperformer thresholds'],
+  ['Consistent Underperformers',under.length,'60%+ failures, at least 5 records across 3 event types'],
+  ['Limited Data',limited.length,'Insufficient event coverage'],
+  ['Eligible Records',eligibleRecords,'All valid scored event opportunities'],
+  ['Overall Success',overallRate.toFixed(1)+'%','Successful eligible records']
+ ])}</section>
+
+ <section class="chart-grid">
+  <div class="glass"><div class="panel-head"><h3>Performance Classification</h3></div><div class="panel-body"><div class="chartbox" id="conClass"></div></div></div>
+  <div class="glass"><div class="panel-head"><h3>Success Rate by G-Level</h3></div><div class="panel-body"><div class="chartbox" id="conG"></div></div></div>
+  <div class="glass"><div class="panel-head"><h3>Top 10 Consistency Scores</h3></div><div class="panel-body"><div class="chartbox" id="conTop"></div></div></div>
+  <div class="glass"><div class="panel-head"><h3>Bottom 10 Consistency Scores</h3></div><div class="panel-body"><div class="chartbox" id="conBottom"></div></div></div>
+ </section>
+
+ <section class="intel-grid">
+  ${card('Top Consistent Performers','Players sustaining the strongest target compliance across multiple event types.',performers.length?`<ul class="list">${performers.slice(0,10).map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g)}</span><span>${r._rate.toFixed(1)}%</span></li>`).join('')}</ul>`:'<div class="empty">No players currently meet the consistent-performer threshold.</div>',performers.length+' players')}
+  ${card('Consistent Underperformers','Players failing at least 60% of eligible records across sufficient event coverage.',under.length?`<ul class="list">${under.slice(0,10).map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g)}</span><span>${r._rate.toFixed(1)}%</span></li>`).join('')}</ul>`:'<div class="empty">No players currently meet the consistent-underperformer threshold.</div>',under.length+' players')}
+  ${card('Classification Rules','A fair minimum-data gate prevents one or two events from deciding a player’s reputation.',`<ul class="list"><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Consistent Performer</strong></span><span>80%+ success</span></li><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Mixed Performance</strong></span><span>41–79.9%</span></li><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Consistent Underperformer</strong></span><span>40% or lower</span></li><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Minimum Coverage</strong></span><span>5 records / 3 types</span></li></ul>`,'Scoring')}
+ </section>
+
+ ${tableCard(
+  'Consolidated Player Performance',
+  [...rows].sort((a,b)=>a._limited-b._limited||b._rate-a._rate||b._eligible-a._eligible||String(a._name).localeCompare(String(b._name))),
+  ['Rank','Player','G-Level','Classification','Success Score','Successful','Failed','Eligible Records','Event Types','Tinman','Dark Omens','Trials','Ragnarök','Chest Points','Vaults'],
+  (r,i)=>[
+   i+1,pLink(r._name),gBadge(r._g),consolidatedBadge(r._classification),scorePill(r._rate,r._limited),
+   fmt(r._success),fmt(r._fail),fmt(r._eligible),fmt(r._coverage),
+   matrixCell(r._events.tinman),matrixCell(r._events.darkOmens),matrixCell(r._events.trials),
+   matrixCell(r._events.ragnarok),matrixCell(r._events.chestpoints),matrixCell(r._events.vaults)
+  ],
+  'Success = target met or vault built. Failure = eligible result below target, missing result, or missing vault. Valid exemptions and periods outside membership are excluded.'
+ )}
+ `;
+ chartPie('conClass',classificationCounts);
+ chartBar('conG',byGRate);
+ chartBar('conTop',Object.fromEntries(ranked.slice(0,10).map(r=>[r._name,r._rate])));
+ chartBar('conBottom',Object.fromEntries(bottom.slice(0,10).map(r=>[r._name,r._rate])));
+}
 
 function renderVaults(){
  const sourceRows=selectedRows(state.data.vaults||[]),
@@ -501,7 +680,7 @@ function scheduleDynamicLayout(root=document){
 }
 
 function renderDataHealth(){const rows=Object.entries(state.data).filter(([k,v])=>Array.isArray(v)).map(([k,v])=>({_sheet:k,_count:v.length,_status:v.length?'Loaded':'Empty'}));$('app').innerHTML=`<section class="content-head glass"><h2>Data Health</h2><p class="sub">Live Google Sheets connection check. Each dataset loads independently.</p></section><section class="kpis">${kpiHtml([['Members',state.data.members.length],['Active',activeMembers().length],['Event Setup',state.data.eventSetup.length],['Growth Rows',state.data.growthRaw.length],['Event Rows',allEventRows().length],['Chest Points',state.data.chestpoints.length],['Vault Rows',state.data.vaults.length],['History Rows',state.data.playerStatusHistory.length],['Exemptions',state.data.eventExemptions.length]])}</section>${tableCard('Loaded Tables',rows,['Dataset','Rows','Status'],r=>[esc(r._sheet),fmt(r._count),statusBadge(r._status)])}`}
-function renderAll(){renderShell();renderEventSelector();renderHero();const map={overview:renderOverview,growth:renderGrowth,tinman:()=>renderEventModule('tinman','Tinman','Points'),darkOmens:()=>renderEventModule('darkOmens','Dark Omens','Essence'),trials:()=>renderEventModule('trials','Trials of Olympus','Points'),ragnarok:()=>renderEventModule('ragnarok','Ragnarök','Score'),chestpoints:()=>renderEventModule('chestpoints','Chest Points','Points'),vaults:renderVaults,exemptions:renderExemptions};(map[state.module]||renderOverview)();scheduleDynamicLayout(document)}
+function renderAll(){renderShell();renderEventSelector();renderHero();const map={overview:renderOverview,growth:renderGrowth,consolidated:renderConsolidatedPerformance,tinman:()=>renderEventModule('tinman','Tinman','Points'),darkOmens:()=>renderEventModule('darkOmens','Dark Omens','Essence'),trials:()=>renderEventModule('trials','Trials of Olympus','Points'),ragnarok:()=>renderEventModule('ragnarok','Ragnarök','Score'),chestpoints:()=>renderEventModule('chestpoints','Chest Points','Points'),vaults:renderVaults,exemptions:renderExemptions};(map[state.module]||renderOverview)();scheduleDynamicLayout(document)}
 function doSearch(){const q=$('search').value.trim(),m=memberByName(q);if(m)openProfile(m._name);else $('searchMsg').textContent='Player not found.'} function openProfile(name){state.player=name;state.profileTab='summary';renderProfile();$('modal').classList.add('show')} function renderProfile(){const m=memberByName(state.player)||{_name:state.player};$('modalTitle').textContent=m._name;$('profileGrid').innerHTML=kpiHtml([['G-Level',gBadge(m._g||memberG(m._name)||'-')],['Might',short(m._might)],['Vault Level',m._vault||'-'],['Status',m._status||'-'],['Growth',getPlayerGrowthTotal(m._name)===null?'—':short(getPlayerGrowthTotal(m._name))]]);const tabs=['summary','growth','tinman','darkOmens','trials','ragnarok','chestpoints','vaults','exemptions'];$('profileTabs').innerHTML=tabs.map(t=>`<button class="tab ${t===state.profileTab?'active':''}" data-profile-tab="${t}" onclick="setProfileTab('${t}')">${label(t)}</button>`).join('');renderProfileContent()} function setProfileTab(t){state.profileTab=t;document.querySelectorAll('#profileTabs .tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.profileTab===t));renderProfileContent()} function label(k){return {darkOmens:'Dark Omens',ragnarok:'Ragnarök',chestpoints:'Chest Points',vaults:'Vaults',exemptions:'Exemptions'}[k]||k[0].toUpperCase()+k.slice(1)} 
 function profileChart(title,id,sub='Performance history.'){return `<section class="glass"><div class="panel-head"><div><h3>${esc(title)}</h3><p class="sub">${esc(sub)}</p></div></div><div class="panel-body"><div class="chartbox" id="${id}"></div></div></section>`}
 function rowsForPlayer(dataset,name){const kk=key(name);return (state.data[dataset]||[]).filter(r=>key(r._name)===kk&&rowHasParticipation(dataset,r)).sort((a,b)=>String(a._event||a._week).localeCompare(String(b._event||b._week)))}
