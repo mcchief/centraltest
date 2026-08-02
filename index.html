@@ -473,7 +473,6 @@ function packContainer(container,columns=3){
 function applyDynamicLayout(root=document){
  hideEmptyDetailCards(root);
  root.querySelectorAll('.growth-intel-grid,.intel-grid,.g-roster-grid').forEach(el=>packContainer(el,3));
- root.querySelectorAll('.chart-grid').forEach(el=>packContainer(el,2));
  root.querySelectorAll('.vault-menu').forEach(el=>packContainer(el,2));
 }
 function scheduleDynamicLayout(root=document){
