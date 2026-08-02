@@ -309,20 +309,31 @@ function renderEventModule(k,title,scoreLabel){
 }
 function repeatUnder(k,eventId=''){
  const map={};
+ const selectedEventDate=parseAnyDate(eventMeta(eventId)._date)||null;
  (state.data[k]||[]).forEach(r=>{
   if(!clean(r._name)||r._target<=0)return;
   const rowEventId=clean(r._eventId)||clean(eventId);
   const rowEventDate=parseAnyDate(eventMeta(rowEventId)._date)||parseAnyDate(r._event);
   const participated=rowHasParticipation(k,r);
+
+  // A player is valid only for events that occurred while they were still a member.
+  // Historical records before departure remain included; records after departure are excluded.
+  if(!memberIsActiveForDate(r._name,rowEventDate))return;
+
+  // When viewing a selected event, the repeat-risk list must also reflect the roster
+  // that was valid on that selected event date.
+  if(selectedEventDate&&!memberIsActiveForDate(r._name,selectedEventDate))return;
+
   // Exempt non-participants do not count as underperformers.
   if(rowIsExempt(rowEventId,r,rowEventDate)&&!participated)return;
+
   if(r._score<r._target){
    const kk=key(r._name);
-   map[kk]=map[kk]||{_name:r._name,_g:r._g,_score:0};
+   map[kk]=map[kk]||{_name:r._name,_g:r._g||memberG(r._name),_score:0};
    map[kk]._score++;
   }
  });
- return Object.values(map).sort((a,b)=>b._score-a._score)
+ return Object.values(map).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
 }
 
 function parseAnyDate(v){v=clean(v);if(!v)return null;let d=new Date(v);if(!isNaN(d))return d;let m=v.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=v.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);return null}
