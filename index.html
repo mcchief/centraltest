@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>WoA Intelligence Platform</title>
+<title>WoA Live Intelligence Platform</title>
 <style>
 :root{--panel:rgba(255,255,255,.075);--panel2:rgba(255,255,255,.11);--line:rgba(148,197,253,.26);--text:#f7fbff;--muted:#b8d7f5;--good:#38d996;--bad:#ff6b7d;--warn:#facc15;--info:#38bdf8;--purple:#a78bfa;--g9:#facc15;--g8:#ef4444;--g7:#f59e0b;--g6:#a855f7;--g5:#3b82f6;--g4:#22c55e;--gunknown:#475569;--radius:22px;--shadow:0 24px 70px rgba(0,0,0,.36)}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(56,189,248,.24),transparent 30%),radial-gradient(circle at top right,rgba(167,139,250,.18),transparent 28%),linear-gradient(135deg,#06111f,#0b1f36 52%,#102a44);min-height:100vh}button,input,select{font:inherit}
@@ -34,11 +34,11 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .matrix-cell.met{color:#9ff0c7;background:rgba(56,217,150,.13)}.matrix-cell.fail{color:#ffb6c0;background:rgba(255,107,125,.13)}.matrix-cell.na{color:#cbd5e1;background:rgba(148,163,184,.12)}
 @media(max-width:1350px){.top{grid-template-columns:1fr}.hero,.chart-grid{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
 </style></head><body>
-<div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Intelligence Dashboard V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Synchronizing live clan data...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Dashboard</div><h1>WoA Intelligence Platform</h1><p>Track clan performance, participation and player progress across all events.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
+<div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Live Intelligence Platform V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Connecting to the live WoA intelligence feed...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Intelligence</div><h1>WoA Intelligence Platform</h1><p>Live monitoring of clan performance, participation and player development across every recorded event.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
 <div id="chartTooltip" class="tooltip"></div>
-<div class="modal" id="modal"><div class="modal-card"><div class="modal-head"><div><h2 class="modal-title" id="modalTitle">Player Profile</h2><p class="sub" id="modalSub">Player performance across all recorded events.</p></div><button class="close" id="closeModal">×</button></div><div class="modal-body"><div class="profile-grid" id="profileGrid"></div><div class="profile-tabs" id="profileTabs"></div><div id="profileContent"></div></div></div></div>
+<div class="modal" id="modal"><div class="modal-card"><div class="modal-head"><div><h2 class="modal-title" id="modalTitle">Player Profile</h2><p class="sub" id="modalSub">Live player intelligence across all recorded events.</p></div><button class="close" id="closeModal">×</button></div><div class="modal-body"><div class="profile-grid" id="profileGrid"></div><div class="profile-tabs" id="profileTabs"></div><div id="profileContent"></div></div></div></div>
 <script>
-/* WoA Intelligence PlatformProduction*/
+/* WoA Live Intelligence Platform */
 const CONFIG={
  settings:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=332629248&single=true&output=csv',
  members:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=2078620130&single=true&output=csv',
@@ -91,7 +91,7 @@ function normalizeWeek(v){v=clean(v);if(!v)return'';let d=parseAnyDate(v);if(d&&
 function mapGrowth(r){return{_name:field(r,['Player Name','Official Player Name','Name','Player']),_week:normalizeWeek(field(r,['Week','Week Start','Event Date','Date'])),_might:num(field(r,['Current Might','Might','Total Might'])),_g:field(r,['G-Level','G Level','Current G-Level'])}}
 function mapStatusHistory(r){const ev=field(r,['Event Date','Date','Week']); return{_name:field(r,['Player Name','Official Player Name','Name','Player']),_event:ev,_eventId:field(r,['Event ID','EventID']),_eventName:field(r,['Event Name','Name','Event']),_g:field(r,['G-Level','G Level','Current G-Level']),_target:num(field(r,['Target','Required','Minimum'])),_score:num(field(r,['Result / Score','Score','Points','Essence','Result','Value'])),_status:field(r,['Status','Current Status','Result Status'])}}
 function mapEventExemption(r){return{_eventId:field(r,['Event ID','EventID','Event Id']),_event:field(r,['Event Date','Date','Week']),_eventName:field(r,['Event Name','Name','Event','Event Type']),_id:field(r,['Player ID','ID','Player Id']),_name:field(r,['Player Name','Official Player Name','Name','Player']),_reason:field(r,['Reason','Exemption Reason','Notes','Comment']),_fromDate:field(r,['From Date','Start Date','Date From','Exemption From']),_toDate:field(r,['To Date','End Date','Date To','Exemption To']),_status:field(r,['Status','Exemption Status','Current Status'])||'Active'}}
-async function initLive(){try{document.getElementById('searchMsg').textContent='Synchronizing live clan data...';document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Loading Live Data</h2><p class="sub">Connecting to the live WoA Master Workbook.</p></section>';const raw={};await Promise.all(Object.entries(CONFIG).map(async([k,u])=>{raw[k]=await loadSheet(k,u)}));let liveGrowth=(raw.growth||[]);if(!liveGrowth.length&&Array.isArray(GROWTH_FALLBACK)&&GROWTH_FALLBACK.length){liveGrowth=GROWTH_FALLBACK;LIVE_STATUS.growth={status:'Loaded from workbook fallback',rows:liveGrowth.length,error:'Live Growth sheet returned no rows; using embedded workbook snapshot.'}}state.data={settings:raw.settings||[],members:(raw.members||[]).map(mapMember).filter(r=>r._name),eventSetup:(raw.eventSetup||[]).map(mapEventSetup).filter(r=>r._id||r._name),growthRaw:liveGrowth.map(mapGrowth).filter(r=>r._name&&r._week&&r._might>0),tinman:(raw.tinman||[]).map(mapEventRow).filter(r=>r._name),darkOmens:(raw.darkOmens||[]).map(mapEventRow).filter(r=>r._name),trials:(raw.trials||[]).map(mapEventRow).filter(r=>r._name),ragnarok:(raw.ragnarok||[]).map(mapEventRow).filter(r=>r._name),chestpoints:(raw.chestpoints||[]).map(mapEventRow).filter(r=>r._name),vaults:(raw.vaults||[]).map(mapEventRow).filter(r=>r._name),playerStatusHistory:(raw.playerStatusHistory||[]).map(mapStatusHistory).filter(r=>r._name),eventExemptions:(raw.eventExemptions||[]).map(mapEventExemption).filter(r=>(r._id||r._name)&&r._reason)};setupControls();renderAll();updateHealthWarnings();document.getElementById('searchMsg').textContent='Live clan data synchronized.'}catch(e){document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Startup Error</h2><p class="sub">'+esc(e.message)+'</p></section>';console.error(e)}}
+async function initLive(){try{document.getElementById('searchMsg').textContent='Connecting to the live WoA intelligence feed...';document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Starting Live Intelligence</h2><p class="sub">Connecting to the live WoA Master Workbook and recalculating intelligence.</p></section>';const raw={};await Promise.all(Object.entries(CONFIG).map(async([k,u])=>{raw[k]=await loadSheet(k,u)}));let liveGrowth=(raw.growth||[]);if(!liveGrowth.length&&Array.isArray(GROWTH_FALLBACK)&&GROWTH_FALLBACK.length){liveGrowth=GROWTH_FALLBACK;LIVE_STATUS.growth={status:'Loaded from workbook fallback',rows:liveGrowth.length,error:'Live Growth sheet returned no rows; using embedded workbook snapshot.'}}state.data={settings:raw.settings||[],members:(raw.members||[]).map(mapMember).filter(r=>r._name),eventSetup:(raw.eventSetup||[]).map(mapEventSetup).filter(r=>r._id||r._name),growthRaw:liveGrowth.map(mapGrowth).filter(r=>r._name&&r._week&&r._might>0),tinman:(raw.tinman||[]).map(mapEventRow).filter(r=>r._name),darkOmens:(raw.darkOmens||[]).map(mapEventRow).filter(r=>r._name),trials:(raw.trials||[]).map(mapEventRow).filter(r=>r._name),ragnarok:(raw.ragnarok||[]).map(mapEventRow).filter(r=>r._name),chestpoints:(raw.chestpoints||[]).map(mapEventRow).filter(r=>r._name),vaults:(raw.vaults||[]).map(mapEventRow).filter(r=>r._name),playerStatusHistory:(raw.playerStatusHistory||[]).map(mapStatusHistory).filter(r=>r._name),eventExemptions:(raw.eventExemptions||[]).map(mapEventExemption).filter(r=>(r._id||r._name)&&r._reason)};setupControls();renderAll();enableAutomaticLayout();updateHealthWarnings();document.getElementById('searchMsg').textContent='Live intelligence synchronized. Rankings and insights are current.'}catch(e){document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Startup Error</h2><p class="sub">'+esc(e.message)+'</p></section>';console.error(e)}}
 const MODULES=[['overview','🏠 Overview'],['growth','📈 Growth'],['consolidated','🏆 Consolidated Performance'],['tinman','⚔ Tinman'],['darkOmens','🌑 Dark Omens'],['trials','🏛 Trials'],['ragnarok','🪓 Ragnarök'],['chestpoints','🎯 Chest Points'],['vaults','🏰 Vaults'],['exemptions','🛡 Exemptions']];
 const state={module:'overview',selected:'',g:'',profileTab:'summary',player:'',data:{}};
 const $=id=>document.getElementById(id); const clean=s=>(s??'').toString().trim(); const key=s=>clean(s).toUpperCase().replace(/\s+/g,''); const num=v=>{let n=parseFloat(clean(v).replace(/,/g,''));return isNaN(n)?0:n}; const fmt=n=>Number(num(n)||0).toLocaleString(); const pct=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'0%'; const short=n=>{n=num(n); if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B'; if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M'; if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+'K'; return fmt(n)}; const esc=s=>clean(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); const escAttr=s=>esc(s).replace(/'/g,'&#39;');
@@ -173,8 +173,8 @@ function outstandingEventEntries(eventId,enteredRows,members,dataset='',eventDat
   return !(exempt&&!participated)&&!participated;
  });
 }
-function kpiHtml(items){return items.map((x,i)=>`<div class="kpi ${['info','good','purple','warn','bad'][i%5]}"><div class="label">${esc(x[0])}</div><div class="value">${x[1]}</div><div class="note">${x[2]||''}</div></div>`).join('')} function card(title,sub,body,chip='',extraClass=''){return `<section class="glass ${extraClass||''}"><div class="panel-head"><div><h3>${title}</h3><p class="sub">${sub||''}</p></div>${chip?`<span class="chip">${chip}</span>`:''}</div><div class="panel-body">${body}</div></section>`} function tableCard(title,rows,headers,map,sub='Detailed performance records.'){const body=rows.length?`<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,i)=>`<tr>${map(r,i).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:`<div class="empty">No records found.</div>`;return card(title,sub,body,`${rows.length} rows`)}
-function listCard(title,rows,chip,sub='Leadership focus for this selection.'){return card(title,sub,rows.length?`<ul class="list">${rows.map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g||memberG(r._name)||'')}</span><span>${fmt(r._score??r._change??r._growth??r._value??0)}</span></li>`).join('')}</ul>`:`<div class="empty">No records.</div>`,chip)}
+function kpiHtml(items){return items.map((x,i)=>`<div class="kpi ${['info','good','purple','warn','bad'][i%5]}"><div class="label">${esc(x[0])}</div><div class="value">${x[1]}</div><div class="note">${x[2]||''}</div></div>`).join('')} function card(title,sub,body,chip='',extraClass=''){return `<section class="glass ${extraClass||''}"><div class="panel-head"><div><h3>${title}</h3><p class="sub">${sub||''}</p></div>${chip?`<span class="chip">${chip}</span>`:''}</div><div class="panel-body">${body}</div></section>`} function tableCard(title,rows,headers,map,sub='Live detailed performance records.'){const body=rows.length?`<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,i)=>`<tr>${map(r,i).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:`<div class="empty">No records found.</div>`;return card(title,sub,body,`${rows.length} rows`)}
+function listCard(title,rows,chip,sub='Live leadership focus for the current selection.'){return card(title,sub,rows.length?`<ul class="list">${rows.map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g||memberG(r._name)||'')}</span><span>${fmt(r._score??r._change??r._growth??r._value??0)}</span></li>`).join('')}</ul>`:`<div class="empty">No records.</div>`,chip)}
 function groupCount(rows,prop){const o={};rows.forEach(r=>{const k=clean(r[prop])||'Unknown';o[k]=(o[k]||0)+1});return o} function groupSum(rows,prop,val){const o={};rows.forEach(r=>{const k=clean(r[prop])||'Unknown';o[k]=(o[k]||0)+num(r[val])});return o} function topObj(rows,labelProp,valProp,n=10){return Object.fromEntries(rows.map(r=>[r[labelProp],num(r[valProp])]).filter(x=>x[0]).sort((a,b)=>b[1]-a[1]).slice(0,n))} function allTimeGrowthRows(){const by={};(state.data.growthRaw||[]).forEach(r=>{const kk=key(r._name); if(!kk||!r._week)return; by[kk]=by[kk]||{_name:r._name,_g:memberG(r._name),_firstWeek:r._week,_lastWeek:r._week,_first:r._might,_last:r._might,_growth:0}; if(String(r._week).localeCompare(String(by[kk]._firstWeek))<0){by[kk]._firstWeek=r._week;by[kk]._first=r._might} if(String(r._week).localeCompare(String(by[kk]._lastWeek))>0){by[kk]._lastWeek=r._week;by[kk]._last=r._might}}); return Object.values(by).map(x=>({...x,_growth:x._last-x._first})).filter(x=>x._firstWeek!==x._lastWeek)} function eventTrend(rows){const o={};rows.forEach(r=>{const k=r._event;if(k)o[k]=(o[k]||0)+1});return o} function growthTrend(){const o={};(state.data.growthRaw||[]).forEach(r=>{o[r._week]=(o[r._week]||0)+r._might});return o}
 function chartBar(id,obj){const host=$(id);if(!host)return;const e=Object.entries(obj).filter(x=>x[1]!==undefined).slice(0,12);if(!e.length){host.innerHTML='<div class="empty">No data available.</div>';return}const max=Math.max(...e.map(x=>Math.abs(num(x[1]))),1);host.innerHTML=`<div class="barwrap">${e.map(([l,v])=>`<div class="baritem" data-title="${escAttr(l)}" data-value="${fmt(v)}"><div class="bar" style="height:${Math.max(4,Math.abs(num(v))/max*82)}%;${/^G[4-9]$/i.test(clean(l))?`background:${gColor(l)};box-shadow:0 0 18px color-mix(in srgb,${gColor(l)} 35%,transparent);`:''}"></div><div class="barlabel">${esc(l)}</div></div>`).join('')}</div>`;host.querySelectorAll('.baritem').forEach(el=>{el.onmousemove=e=>showTip(tipHtml(el.dataset.title,[['Value',el.dataset.value]]),e.clientX,e.clientY);el.onmouseleave=hideTip})} function chartPie(id,obj){const host=$(id);if(!host)return;const e=Object.entries(obj).filter(x=>num(x[1])>0);if(!e.length){host.innerHTML='<div class="empty">No data available.</div>';return}const total=e.reduce((s,x)=>s+num(x[1]),0);host.innerHTML='<div style="display:grid;gap:9px;padding:12px">'+e.map(([l,v])=>{const pc=total?num(v)/total*100:0;return `<div><div style="display:flex;justify-content:space-between;font-size:12px;color:#d7ebff"><span>${esc(l)}</span><b>${fmt(v)} (${pc.toFixed(1)}%)</b></div><div style="height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden"><div style="height:100%;width:${pc}%;background:${/^G[4-9]$/i.test(clean(l))?gColor(l):'linear-gradient(90deg,rgba(56,189,248,.85),rgba(167,139,250,.7))'}"></div></div></div>`}).join('')+'</div>'} function chartLine(id,obj){const host=$(id);if(!host)return;const e=Object.entries(obj);if(!e.length){host.innerHTML='<div class="empty">No data available.</div>';return}const w=900,h=260,p=32,vals=e.map(x=>num(x[1])),min=Math.min(...vals),max=Math.max(...vals),span=max-min||1,pts=e.map((x,i)=>[p+(e.length===1?w/2:(i*(w-2*p)/(e.length-1))),h-p-((num(x[1])-min)/span)*(h-2*p)]);host.innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" preserveAspectRatio="none"><polyline fill="none" stroke="rgba(56,189,248,.95)" stroke-width="4" points="${pts.map(p=>p.join(',')).join(' ')}"/><g>${pts.map((p,i)=>`<circle class="linept" data-title="${escAttr(e[i][0])}" data-value="${fmt(e[i][1])}" cx="${p[0]}" cy="${p[1]}" r="5" fill="rgba(167,139,250,.95)"></circle>`).join('')}</g></svg><div style="display:flex;justify-content:space-between;color:#d7ebff;font-size:11px;margin-top:-20px;padding:0 10px"><span>${esc(e[0][0])}</span><span>${esc(e[e.length-1][0])}</span></div>`;host.querySelectorAll('.linept').forEach(el=>{el.onmousemove=e=>showTip(tipHtml(el.dataset.title,[['Value',el.dataset.value]]),e.clientX,e.clientY);el.onmouseleave=hideTip})}
 function setupControls(){const gs=[...new Set(state.data.members.map(m=>m._g).filter(Boolean))].sort((a,b)=>num(a.replace('G',''))-num(b.replace('G','')));$('gFilter').innerHTML='<option value="">All G-Levels</option>'+gs.map(g=>`<option>${esc(g)}</option>`).join('');$('suggestions').innerHTML=state.data.members.map(m=>`<option value="${esc(m._name)}"></option>`).join('')} function renderShell(){const tabs=$('tabs');tabs.innerHTML=MODULES.map(m=>`<button class="tab ${m[0]===state.module?'active':''}" data-module="${m[0]}">${m[1]}</button>`).join('');tabs.onclick=e=>{if(e.target.dataset.module){state.module=e.target.dataset.module;state.selected='';renderAll()}};$('searchBtn').onclick=doSearch;$('search').onkeydown=e=>{if(e.key==='Enter')doSearch()};$('closeModal').onclick=()=>$('modal').classList.remove('show');$('gFilter').onchange=e=>{state.g=e.target.value;renderAll()};$('eventSelect').onchange=e=>{state.selected=e.target.value;renderAll()}} function renderEventSelector(){let vals=[];if(state.module==='consolidated'){$('eventSelect').innerHTML='<option value="">All Recorded Events</option>';state.selected='';return}if(state.module==='exemptions'){if(!state.selected)state.selected='status:active';const ranges=exemptionRangeOptions();$('eventSelect').innerHTML=[['status:active','Current / Active'],['status:scheduled','Scheduled'],['status:expired','Expired'],['status:all','All History'],...ranges].map(([v,l])=>`<option value="${escAttr(v)}" ${v===state.selected?'selected':''}>${esc(l)}</option>`).join('');return}if(state.module==='growth'||state.module==='overview')vals=[...new Set(state.data.growthRaw.map(r=>r._week))].sort();else if(state.data[state.module])vals=[...new Set(state.data[state.module].map(r=>r._eventId||r._event).filter(Boolean))].sort();if(!state.selected||!vals.includes(state.selected))state.selected=(vals.length?vals[vals.length-1]:'');$('eventSelect').innerHTML='<option value="">All</option>'+vals.map(v=>`<option ${v===state.selected?'selected':''}>${esc(v)}</option>`).join('')}
@@ -203,16 +203,16 @@ function hideTip(){const t=$('chartTooltip'); if(t)t.style.display='none'}
 function tipHtml(title, rows){return `<b>${esc(title)}</b>`+rows.map(r=>`<div><span class="muted">${esc(r[0])}:</span> ${esc(r[1])}</div>`).join('')}
 
 const EXEC_COPY={
- overview:'Current clan status and overall performance.',
- growth:'Track player growth and identify members needing attention.',
- consolidated:'Leadership view of players who perform consistently or underperform repeatedly across all eligible events.',
- tinman:'Tinman participation, targets and top performers.',
- darkOmens:'Dark Omens participation and essence performance.',
- trials:'Trials participation, targets and player rankings.',
- ragnarok:'Ragnarök participation and battle performance.',
- chestpoints:'Chest contribution and participation.',
- vaults:'Vault building participation and compliance.',
- exemptions:'Leadership view of current all-event exemptions and configured event-specific exemptions.',
+ overview:'Live clan status, roster strength and performance intelligence.',
+ growth:'Live growth intelligence highlighting momentum, movement and players needing attention.',
+ consolidated:'Live leadership intelligence identifying consistent performers and recurring performance risks across all eligible events.',
+ tinman:'Live Tinman participation, target achievement and player performance intelligence.',
+ darkOmens:'Live Dark Omens participation and essence performance intelligence.',
+ trials:'Live Trials participation, target achievement and player rankings.',
+ ragnarok:'Live Ragnarök participation and battle-performance intelligence.',
+ chestpoints:'Live Chest Points contribution and participation intelligence.',
+ vaults:'Live vault-building participation and compliance intelligence.',
+ exemptions:'Live leadership view of active, scheduled and historical exemptions across all events.',
  nonBuilders:'Players yet to build a vault for the selected event.',
  mostVaults:'Players with the highest number of vaults built across all recorded events.',
  development:'Players needing improvement based on recent growth.',
@@ -288,7 +288,7 @@ function renderEventModule(k,title,scoreLabel){
  $('app').innerHTML=`
  <section class="content-head glass">
    <h2>${title}</h2>
-   <p class="sub">${EXEC_COPY[k]||'Performance intelligence for the selected reporting period.'}</p>
+   <p class="sub">${EXEC_COPY[k]||'Live performance intelligence for the selected event.'}</p>
  </section>
 
  <section class="kpis">${kpiHtml([
@@ -485,7 +485,7 @@ function renderConsolidatedPerformance(){
  $('app').innerHTML=`
  <section class="content-head glass">
   <h2>Consolidated Performance</h2>
-  <p class="sub">Cross-event consistency across Tinman, Dark Omens, Trials, Ragnarök, Chest Points and Vaults. Only current active members are ranked; each historical result counts only when the player was eligible on that event date. Valid exempt non-participation is excluded.</p>
+  <p class="sub">Live cross-event intelligence across Tinman, Dark Omens, Trials, Ragnarök, Chest Points and Vaults. Rankings recalculate automatically whenever results, membership, G-Levels or exemptions change. Historical results count only while each player was eligible, and valid exempt non-participation is excluded.</p>
  </section>
 
  <section class="kpis">${kpiHtml([
@@ -494,7 +494,6 @@ function renderConsolidatedPerformance(){
   ['Mixed Performance',mixed.length,'Between performer and underperformer thresholds'],
   ['Consistent Underperformers',under.length,'60%+ failures, at least 5 records across 3 event types'],
   ['Limited Data',limited.length,'Insufficient event coverage'],
-  ['Eligible Records',eligibleRecords,'All valid scored event opportunities'],
   ['Overall Success',overallRate.toFixed(1)+'%','Successful eligible records']
  ])}</section>
 
@@ -505,10 +504,9 @@ function renderConsolidatedPerformance(){
   <div class="glass"><div class="panel-head"><h3>Bottom 10 Consistency Scores</h3></div><div class="panel-body"><div class="chartbox" id="conBottom"></div></div></div>
  </section>
 
- <section class="intel-grid">
+ <section class="intel-grid auto-pack" data-pack-max="2">
   ${card('Top Consistent Performers','Players sustaining the strongest target compliance across multiple event types.',performers.length?`<ul class="list">${performers.slice(0,10).map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g)}</span><span>${r._rate.toFixed(1)}%</span></li>`).join('')}</ul>`:'<div class="empty">No players currently meet the consistent-performer threshold.</div>',performers.length+' players')}
   ${card('Consistent Underperformers','Players failing at least 60% of eligible records across sufficient event coverage.',under.length?`<ul class="list">${under.slice(0,10).map(r=>`<li><span>${pLink(r._name)}</span><span>${gBadge(r._g)}</span><span>${r._rate.toFixed(1)}%</span></li>`).join('')}</ul>`:'<div class="empty">No players currently meet the consistent-underperformer threshold.</div>',under.length+' players')}
-  ${card('Classification Rules','A fair minimum-data gate prevents one or two events from deciding a player’s reputation.',`<ul class="list"><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Consistent Performer</strong></span><span>80%+ success</span></li><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Mixed Performance</strong></span><span>41–79.9%</span></li><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Consistent Underperformer</strong></span><span>40% or lower</span></li><li style="grid-template-columns:minmax(0,1fr) 130px"><span><strong>Minimum Coverage</strong></span><span>5 records / 3 types</span></li></ul>`,'Scoring')}
  </section>
 
  ${tableCard(
@@ -649,34 +647,142 @@ function hideEmptyDetailCards(root=document){
   container.classList.toggle('dynamic-hidden',visible.length===0);
  });
 }
-function packContainer(container,columns=3){
- if(!container||container.dataset.packed==='1')return;
- const cards=[...container.children].filter(el=>el.classList.contains('glass')&&!el.classList.contains('dynamic-hidden'));
- if(cards.length<2)return;
- const colCount=Math.min(columns,cards.length);
- const measured=cards.map((el,i)=>({el,i,h:el.getBoundingClientRect().height||1})).sort((a,b)=>b.h-a.h||a.i-b.i);
+function unpackContainer(container){
+ if(!container)return;
+ const columns=[...container.children].filter(el=>el.classList.contains('dynamic-column'));
+ if(!columns.length)return;
+ const cards=columns.flatMap(col=>[...col.children]);
+ cards.sort((a,b)=>num(a.dataset.packOrder)-num(b.dataset.packOrder));
+ container.innerHTML='';
+ cards.forEach(card=>{
+  delete card.dataset.packOrder;
+  container.appendChild(card);
+ });
+ container.classList.remove('dynamic-pack','two-col');
+ delete container.dataset.packed;
+}
+function visiblePackCards(container){
+ return [...container.children].filter(el=>{
+  if(!el.classList.contains('glass'))return false;
+  if(el.classList.contains('dynamic-hidden'))return false;
+  const style=getComputedStyle(el);
+  return style.display!=='none'&&style.visibility!=='hidden';
+ });
+}
+function optimalColumnCount(container,cards,maxColumns=3){
+ const width=container.getBoundingClientRect().width||0;
+ if(width<760)return 1;
+ const minimumCardWidth=390;
+ const possible=Math.max(1,Math.floor((width+12)/(minimumCardWidth+12)));
+ return Math.min(maxColumns,cards.length,possible);
+}
+function packContainer(container,maxColumns=3){
+ if(!container)return;
+ unpackContainer(container);
+ const cards=visiblePackCards(container);
+ if(!cards.length){
+  container.classList.add('dynamic-hidden');
+  return;
+ }
+ container.classList.remove('dynamic-hidden');
+ if(cards.length===1)return;
+
+ cards.forEach((card,index)=>card.dataset.packOrder=String(index));
+ const measured=cards.map((el,index)=>({
+  el,index,h:Math.max(1,Math.ceil(el.getBoundingClientRect().height))
+ })).sort((a,b)=>b.h-a.h||a.index-b.index);
+
+ const colCount=optimalColumnCount(container,cards,maxColumns);
+ if(colCount<=1)return;
+
  container.innerHTML='';
  container.classList.add('dynamic-pack');
- if(colCount===2)container.classList.add('two-col');
- const cols=Array.from({length:colCount},()=>{const col=document.createElement('div');col.className='dynamic-column';container.appendChild(col);return {el:col,h:0}});
- // Keep the tallest card alone in the first column. Pack all smaller cards beneath each other in the remaining columns.
- cols[0].el.appendChild(measured[0].el);
- cols[0].h=measured[0].h;
+ container.classList.toggle('two-col',colCount===2);
+
+ const columns=Array.from({length:colCount},()=>{
+  const el=document.createElement('div');
+  el.className='dynamic-column';
+  container.appendChild(el);
+  return {el,height:0};
+ });
+
+ // The tallest card anchors the first column. Smaller cards are packed
+ // beneath one another in the remaining columns to consume its height.
+ columns[0].el.appendChild(measured[0].el);
+ columns[0].height=measured[0].h;
+
  measured.slice(1).forEach(item=>{
-  const candidates=cols.slice(1);
-  const target=(candidates.length?candidates:cols).reduce((a,b)=>a.h<=b.h?a:b);
+  const candidates=colCount>1?columns.slice(1):columns;
+  const target=candidates.reduce((best,current)=>
+   current.height<best.height?current:best
+  );
   target.el.appendChild(item.el);
-  target.h+=item.h+12;
+  target.height+=item.h+12;
  });
  container.dataset.packed='1';
 }
+function layoutTargets(root=document){
+ return [...root.querySelectorAll(
+  '.chart-grid,.growth-intel-grid,.intel-grid,.g-roster-grid,.vault-menu,.auto-pack'
+ )];
+}
 function applyDynamicLayout(root=document){
- hideEmptyDetailCards(root);
- root.querySelectorAll('.growth-intel-grid,.intel-grid,.g-roster-grid').forEach(el=>packContainer(el,3));
- root.querySelectorAll('.vault-menu').forEach(el=>packContainer(el,2));
+ if(window.__woaLayoutRunning)return;
+ window.__woaLayoutRunning=true;
+ try{
+  layoutTargets(root).forEach(unpackContainer);
+  hideEmptyDetailCards(root);
+  layoutTargets(root).forEach(container=>{
+   const requested=num(container.dataset.packMax);
+   const maxColumns=requested||(
+    container.classList.contains('vault-menu')?2:
+    container.classList.contains('chart-grid')?2:3
+   );
+   packContainer(container,maxColumns);
+  });
+ }finally{
+  window.__woaLayoutRunning=false;
+ }
 }
 function scheduleDynamicLayout(root=document){
- requestAnimationFrame(()=>requestAnimationFrame(()=>applyDynamicLayout(root)));
+ clearTimeout(window.__woaLayoutTimer);
+ window.__woaLayoutTimer=setTimeout(()=>{
+  requestAnimationFrame(()=>requestAnimationFrame(()=>applyDynamicLayout(root)));
+ },40);
+}
+function enableAutomaticLayout(){
+ if(window.__woaAutoLayoutEnabled)return;
+ window.__woaAutoLayoutEnabled=true;
+
+ window.addEventListener('resize',()=>scheduleDynamicLayout(document),{passive:true});
+
+ if('ResizeObserver' in window){
+  window.__woaResizeObserver=new ResizeObserver(entries=>{
+   if(window.__woaLayoutRunning)return;
+   if(entries.some(entry=>entry.target.id==='app'||entry.target.classList.contains('chartbox'))){
+    scheduleDynamicLayout(document);
+   }
+  });
+  const app=document.getElementById('app');
+  if(app)window.__woaResizeObserver.observe(app);
+ }
+
+ if('MutationObserver' in window){
+  window.__woaMutationObserver=new MutationObserver(mutations=>{
+   if(window.__woaLayoutRunning)return;
+   const meaningful=mutations.some(m=>
+    m.type==='childList'||m.type==='characterData'||
+    (m.type==='attributes'&&['class','style'].includes(m.attributeName))
+   );
+   if(meaningful)scheduleDynamicLayout(document);
+  });
+  const app=document.getElementById('app');
+  if(app)window.__woaMutationObserver.observe(app,{
+   childList:true,subtree:true,characterData:true,attributes:true,
+   attributeFilter:['class','style']
+  });
+ }
+ scheduleDynamicLayout(document);
 }
 
 function renderDataHealth(){const rows=Object.entries(state.data).filter(([k,v])=>Array.isArray(v)).map(([k,v])=>({_sheet:k,_count:v.length,_status:v.length?'Loaded':'Empty'}));$('app').innerHTML=`<section class="content-head glass"><h2>Data Health</h2><p class="sub">Live Google Sheets connection check. Each dataset loads independently.</p></section><section class="kpis">${kpiHtml([['Members',state.data.members.length],['Active',activeMembers().length],['Event Setup',state.data.eventSetup.length],['Growth Rows',state.data.growthRaw.length],['Event Rows',allEventRows().length],['Chest Points',state.data.chestpoints.length],['Vault Rows',state.data.vaults.length],['History Rows',state.data.playerStatusHistory.length],['Exemptions',state.data.eventExemptions.length]])}</section>${tableCard('Loaded Tables',rows,['Dataset','Rows','Status'],r=>[esc(r._sheet),fmt(r._count),statusBadge(r._status)])}`}
