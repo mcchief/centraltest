@@ -32,7 +32,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .performance-score.high{color:#9ff0c7}.performance-score.mid{color:#ffe68a}.performance-score.low{color:#ffb6c0}.performance-score.limited{color:#cbd5e1}
 .matrix-cell{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:900}
 .matrix-cell.met{color:#9ff0c7;background:rgba(56,217,150,.13)}.matrix-cell.fail{color:#ffb6c0;background:rgba(255,107,125,.13)}.matrix-cell.na{color:#cbd5e1;background:rgba(148,163,184,.12)}
-@media(max-width:1350px){.top{grid-template-columns:1fr}.hero,.chart-grid{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
+@media(max-width:1350px){.top{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
 </style></head><body>
 <div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Live Intelligence Platform V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Connecting to the live WoA intelligence feed...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Intelligence</div><h1>WoA Intelligence Platform</h1><p>Live monitoring of clan performance, participation and player development across every recorded event.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
 <div id="chartTooltip" class="tooltip"></div>
@@ -650,7 +650,11 @@ function hideEmptyDetailCards(root=document){
 function unpackContainer(container){
  if(!container)return;
  const columns=[...container.children].filter(el=>el.classList.contains('dynamic-column'));
- if(!columns.length)return;
+ if(!columns.length){
+  container.classList.remove('dynamic-pack','two-col');
+  delete container.dataset.packed;
+  return;
+ }
  const cards=columns.flatMap(col=>[...col.children]);
  cards.sort((a,b)=>num(a.dataset.packOrder)-num(b.dataset.packOrder));
  container.innerHTML='';
@@ -676,8 +680,24 @@ function optimalColumnCount(container,cards,maxColumns=3){
  const possible=Math.max(1,Math.floor((width+12)/(minimumCardWidth+12)));
  return Math.min(maxColumns,cards.length,possible);
 }
-function packContainer(container,maxColumns=3){
- if(!container)return;
+function createPackingColumns(container,colCount){
+ container.innerHTML='';
+ container.classList.add('dynamic-pack');
+ container.classList.toggle('two-col',colCount===2);
+ return Array.from({length:colCount},()=>{
+  const el=document.createElement('div');
+  el.className='dynamic-column';
+  container.appendChild(el);
+  return {el,height:0};
+ });
+}
+function measuredCards(cards){
+ cards.forEach((card,index)=>card.dataset.packOrder=String(index));
+ return cards.map((el,index)=>({
+  el,index,h:Math.max(1,Math.ceil(el.getBoundingClientRect().height))
+ })).sort((a,b)=>b.h-a.h||a.index-b.index);
+}
+function packVariableLists(container,maxColumns=3){
  unpackContainer(container);
  const cards=visiblePackCards(container);
  if(!cards.length){
@@ -687,58 +707,93 @@ function packContainer(container,maxColumns=3){
  container.classList.remove('dynamic-hidden');
  if(cards.length===1)return;
 
- cards.forEach((card,index)=>card.dataset.packOrder=String(index));
- const measured=cards.map((el,index)=>({
-  el,index,h:Math.max(1,Math.ceil(el.getBoundingClientRect().height))
- })).sort((a,b)=>b.h-a.h||a.index-b.index);
-
+ const measured=measuredCards(cards);
  const colCount=optimalColumnCount(container,cards,maxColumns);
  if(colCount<=1)return;
 
- container.innerHTML='';
- container.classList.add('dynamic-pack');
- container.classList.toggle('two-col',colCount===2);
+ const columns=createPackingColumns(container,colCount);
 
- const columns=Array.from({length:colCount},()=>{
-  const el=document.createElement('div');
-  el.className='dynamic-column';
-  container.appendChild(el);
-  return {el,height:0};
- });
-
- // The tallest card anchors the first column. Smaller cards are packed
- // beneath one another in the remaining columns to consume its height.
- columns[0].el.appendChild(measured[0].el);
- columns[0].height=measured[0].h;
-
- measured.slice(1).forEach(item=>{
-  const candidates=colCount>1?columns.slice(1):columns;
-  const target=candidates.reduce((best,current)=>
+ // Standard variable-height lists use true shortest-column packing.
+ // Every next card goes into the currently shortest column.
+ measured.forEach(item=>{
+  const target=columns.reduce((best,current)=>
    current.height<best.height?current:best
   );
   target.el.appendChild(item.el);
   target.height+=item.h+12;
  });
- container.dataset.packed='1';
+ container.dataset.packed='variable';
+}
+function packGLevelRoster(container,maxColumns=3){
+ unpackContainer(container);
+ const cards=visiblePackCards(container);
+ if(!cards.length){
+  container.classList.add('dynamic-hidden');
+  return;
+ }
+ container.classList.remove('dynamic-hidden');
+ if(cards.length===1)return;
+
+ const measured=measuredCards(cards);
+ const colCount=optimalColumnCount(container,cards,maxColumns);
+ if(colCount<=1)return;
+
+ const columns=createPackingColumns(container,colCount);
+
+ // G-Level roster standard:
+ // tallest group first; smaller groups stack in surrounding columns.
+ columns[0].el.appendChild(measured[0].el);
+ columns[0].height=measured[0].h;
+
+ measured.slice(1).forEach(item=>{
+  const surrounding=columns.slice(1);
+  const target=(surrounding.length?surrounding:columns).reduce((best,current)=>
+   current.height<best.height?current:best
+  );
+  target.el.appendChild(item.el);
+  target.height+=item.h+12;
+ });
+ container.dataset.packed='g-roster';
+}
+function prepareBalancedChartGrid(container){
+ // Charts are deliberately not masonry-packed.
+ // Natural DOM order produces:
+ // Top 10 | G-Level Performance
+ // Target Achievement | Participation Trend
+ unpackContainer(container);
+ const visible=visiblePackCards(container);
+ container.classList.toggle('dynamic-hidden',visible.length===0);
 }
 function layoutTargets(root=document){
- return [...root.querySelectorAll(
-  '.chart-grid,.growth-intel-grid,.intel-grid,.g-roster-grid,.vault-menu,.auto-pack'
- )];
+ return {
+  charts:[...root.querySelectorAll('.chart-grid')],
+  rosters:[...root.querySelectorAll('.g-roster-grid')],
+  variable:[...root.querySelectorAll('.growth-intel-grid,.intel-grid,.vault-menu,.auto-pack')]
+ };
 }
 function applyDynamicLayout(root=document){
  if(window.__woaLayoutRunning)return;
  window.__woaLayoutRunning=true;
  try{
-  layoutTargets(root).forEach(unpackContainer);
+  const targets=layoutTargets(root);
+
+  [...targets.charts,...targets.rosters,...targets.variable].forEach(unpackContainer);
   hideEmptyDetailCards(root);
-  layoutTargets(root).forEach(container=>{
+
+  // Standard charts stay in balanced two-column CSS rows.
+  targets.charts.forEach(prepareBalancedChartGrid);
+
+  // G-Level groups use tallest-first surrounding-column packing.
+  targets.rosters.forEach(container=>{
+   const requested=num(container.dataset.packColumns||container.dataset.packMax);
+   packGLevelRoster(container,requested||3);
+  });
+
+  // Other variable-height detail lists use shortest-column packing.
+  targets.variable.forEach(container=>{
    const requested=num(container.dataset.packMax);
-   const maxColumns=requested||(
-    container.classList.contains('vault-menu')?2:
-    container.classList.contains('chart-grid')?2:3
-   );
-   packContainer(container,maxColumns);
+   const maxColumns=requested||(container.classList.contains('vault-menu')?2:3);
+   packVariableLists(container,maxColumns);
   });
  }finally{
   window.__woaLayoutRunning=false;
@@ -759,9 +814,11 @@ function enableAutomaticLayout(){
  if('ResizeObserver' in window){
   window.__woaResizeObserver=new ResizeObserver(entries=>{
    if(window.__woaLayoutRunning)return;
-   if(entries.some(entry=>entry.target.id==='app'||entry.target.classList.contains('chartbox'))){
-    scheduleDynamicLayout(document);
-   }
+   if(entries.some(entry=>
+    entry.target.id==='app'||
+    entry.target.classList.contains('chartbox')||
+    entry.target.classList.contains('glass')
+   ))scheduleDynamicLayout(document);
   });
   const app=document.getElementById('app');
   if(app)window.__woaResizeObserver.observe(app);
