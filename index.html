@@ -214,7 +214,28 @@ function latestGrowthSnapshot(){return latestGrowthRows().filter(isActiveGrowthP
 function latestGrowthTotal(){const snap=latestGrowthSnapshot();return snap.length?snap.reduce((s,r)=>s+r._might,0):activeRosterMembers().reduce((s,m)=>s+m._might,0)}
 function renderHero(){const current=activeRosterMembers(),active=activeMembers(),total=latestGrowthTotal(),weeks=growthWeeks();$('heroCards').innerHTML=kpiHtml([['Current Members',current.length],['Active Players',active.length],['Clan Might',short(total)],['Growth Weeks',weeks.length]])}
 
-function memberIsActiveForDate(name, eventDate){const m=memberByName(name); if(!m)return true; const status=clean(m._status).toLowerCase(); const join=parseAnyDate(m._join), left=parseAnyDate(m._left); if(!eventDate)return !/(left|removed|inactive|pending)/i.test(m._status); if(join&&join>eventDate)return false; if(/removed|inactive|pending/i.test(m._status))return false; if(left&&left<eventDate)return false; if(/left/i.test(m._status)&&!left)return false; return true}
+function memberIsActiveForDate(name,eventDate){
+ const m=memberByName(name);
+ if(!m)return true;
+
+ const join=startOfDay(parseAnyDate(m._join));
+ const left=startOfDay(parseAnyDate(m._left));
+ const date=startOfDay(eventDate instanceof Date?eventDate:parseAnyDate(eventDate));
+
+ // Current view: only currently eligible members.
+ if(!date)return !/(left|removed|inactive|pending)/i.test(clean(m._status));
+
+ // Historical view: membership is determined by the actual join/leave period.
+ // A player is included from Join Date through Leave Date, inclusive.
+ if(join&&date.getTime()<join.getTime())return false;
+ if(left&&date.getTime()>left.getTime())return false;
+
+ // A status without a usable departure date cannot safely be projected backwards.
+ if(!left&&/(left|removed)/i.test(clean(m._status)))return false;
+ if(/pending/i.test(clean(m._status)))return false;
+
+ return true;
+}
 function growthRowsForWeek(week){return state.data.growthRaw.filter(r=>r._week===week)}
 function getPlayerGrowthTotal(name){const rows=(state.data.growthRaw||[]).filter(r=>key(r._name)===key(name)&&r._week).sort((a,b)=>String(a._week).localeCompare(String(b._week))); if(rows.length>1)return rows[rows.length-1]._might-rows[0]._might; return null}
 function playerTimeline(name){const kk=key(name), out=[]; const add=(r, event, scoreLabel)=>{out.push({_date:r._event,_event:event,_g:r._g||memberG(r._name),_target:r._target,_score:r._score,_status:r._status||((r._score>=r._target)?'Met Target':'Below Target'),_type:'score',_label:scoreLabel})};
@@ -242,7 +263,7 @@ const EXEC_COPY={
  exemptions:'Live leadership view of active, scheduled and historical exemptions across all events.',
  nonBuilders:'Players yet to build a vault for the selected event.',
  mostVaults:'Players with the highest number of vaults built across all recorded events.',
- repeatVaultRisk:'Players who missed two or more eligible vault events across the recorded history.',
+ repeatVaultRisk:'Players who missed two or more eligible vault events while they were clan members. Join dates, departure dates and exemptions are enforced.',
  development:'Players needing improvement based on recent growth.',
  improvers:'Players with the highest growth during the selected period.',
  decliners:'Players with the largest growth decline during the selected period.',
@@ -381,7 +402,10 @@ function repeatUnder(k,eventId=''){
 
 function parseAnyDate(v){v=clean(v);if(!v)return null;let d=new Date(v);if(!isNaN(d))return d;let m=v.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=v.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);return null}
 function eventDateFromSelection(rows){let meta=state.selected?eventMeta(state.selected):{};return parseAnyDate(meta._date)||parseAnyDate(rows.find(r=>r._event)?._event)||null}
-function eligibleMembersForDate(eventDate){if(!eventDate)return activeRosterMembers();return state.data.members.filter(m=>{const join=parseAnyDate(m._join),left=parseAnyDate(m._left);if(join&&join>eventDate)return false;if(/removed|inactive|pending/i.test(m._status))return false;if(left&&left<eventDate)return false;if(/left/i.test(m._status)&&!left)return false;return true})}
+function eligibleMembersForDate(eventDate){
+ if(!eventDate)return activeRosterMembers();
+ return state.data.members.filter(m=>memberIsActiveForDate(m._name,eventDate));
+}
 function updateHealthWarnings(){const failed=Object.entries(LIVE_STATUS).filter(([k,v])=>v&&v.status!=='Loaded');const el=$('warningBanner');if(!el)return;if(!failed.length){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');el.innerHTML='⚠ Some live Google Sheets did not return usable data: '+failed.map(([k])=>esc(k)).join(', ')+'. Other modules continue to work.'}
 
 
@@ -654,6 +678,11 @@ function renderVaults(){
 
   groupEligible.forEach(member=>{
    if(!memberIsActiveForDate(member._name,groupDate))return;
+
+   // The repeat-risk card must reflect the roster valid for the selected Vault event.
+   // Former members remain visible only when the selected event occurred before
+   // or on their recorded departure date.
+   if(eventDate&&!memberIsActiveForDate(member._name,eventDate))return;
 
    const built=hasAnyKey(groupBuiltKeys,member);
    const exempt=isPlayerExempt(groupId,member,groupDate);
