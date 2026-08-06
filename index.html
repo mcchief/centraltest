@@ -627,7 +627,11 @@ function renderVaults(){
  });
  const mostVaultsBuilt=Object.values(vaultBuildMap).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name))).slice(0,10);
 
- const repeatVaultMissMap=new Map();
+ // Repeat Non Vault Builders:
+ // One miss per eligible player per Vault event.
+ // Exempt non-builders are excluded; exempt builders remain successful.
+ // Membership dates and duplicate rows are respected.
+ const repeatVaultMisses=new Map();
  const vaultEventGroups=new Map();
 
  (state.data.vaults||[]).forEach(r=>{
@@ -640,8 +644,9 @@ function renderVaults(){
   const groupMeta=eventMeta(groupId);
   const groupDate=parseAnyDate(groupMeta._date)||parseAnyDate(groupRows.find(r=>r._event)?._event)||null;
   const groupEligible=eligibleMembersForDate(groupDate);
-  const groupBuiltKeys=new Set();
 
+  // Deduplicate successful builders for this event.
+  const groupBuiltKeys=new Set();
   groupRows
    .filter(r=>r._name&&memberIsActiveForDate(r._name,groupDate))
    .filter(r=>rowHasParticipation('vaults',r))
@@ -649,20 +654,28 @@ function renderVaults(){
 
   groupEligible.forEach(member=>{
    if(!memberIsActiveForDate(member._name,groupDate))return;
+
    const built=hasAnyKey(groupBuiltKeys,member);
    const exempt=isPlayerExempt(groupId,member,groupDate);
+
    if(exempt&&!built)return;
    if(built)return;
+
    const memberKey=uniqueKey(member);
    if(!memberKey)return;
-   if(!repeatVaultMissMap.has(memberKey)){
-    repeatVaultMissMap.set(memberKey,{_name:member._name,_g:member._g||memberG(member._name),_score:0});
+
+   if(!repeatVaultMisses.has(memberKey)){
+    repeatVaultMisses.set(memberKey,{
+     _name:member._name,
+     _g:member._g||memberG(member._name),
+     _score:0
+    });
    }
-   repeatVaultMissMap.get(memberKey)._score++;
+   repeatVaultMisses.get(memberKey)._score++;
   });
  });
 
- const repeatNonVaultBuilders=[...repeatVaultMissMap.values()]
+ const repeatNonVaultBuilders=[...repeatVaultMisses.values()]
   .filter(r=>r._score>=2)
   .filter(r=>!state.g||r._g===state.g)
   .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
