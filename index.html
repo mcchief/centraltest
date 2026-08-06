@@ -242,6 +242,7 @@ const EXEC_COPY={
  exemptions:'Live leadership view of active, scheduled and historical exemptions across all events.',
  nonBuilders:'Players yet to build a vault for the selected event.',
  mostVaults:'Players with the highest number of vaults built across all recorded events.',
+ repeatVaultRisk:'Players who missed two or more eligible vault events across the recorded history.',
  development:'Players needing improvement based on recent growth.',
  improvers:'Players with the highest growth during the selected period.',
  decliners:'Players with the largest growth decline during the selected period.',
@@ -626,7 +627,48 @@ function renderVaults(){
  });
  const mostVaultsBuilt=Object.values(vaultBuildMap).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name))).slice(0,10);
 
- $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
+ const repeatVaultMissMap=new Map();
+ const vaultEventGroups=new Map();
+
+ (state.data.vaults||[]).forEach(r=>{
+  const groupId=clean(r._eventId)||clean(r._event)||'Unknown Vault Event';
+  if(!vaultEventGroups.has(groupId))vaultEventGroups.set(groupId,[]);
+  vaultEventGroups.get(groupId).push(r);
+ });
+
+ vaultEventGroups.forEach((groupRows,groupId)=>{
+  const groupMeta=eventMeta(groupId);
+  const groupDate=parseAnyDate(groupMeta._date)||parseAnyDate(groupRows.find(r=>r._event)?._event)||null;
+  const groupEligible=eligibleMembersForDate(groupDate);
+  const groupBuiltKeys=new Set();
+
+  groupRows
+   .filter(r=>r._name&&memberIsActiveForDate(r._name,groupDate))
+   .filter(r=>rowHasParticipation('vaults',r))
+   .forEach(r=>addKeys(groupBuiltKeys,r));
+
+  groupEligible.forEach(member=>{
+   if(!memberIsActiveForDate(member._name,groupDate))return;
+   const built=hasAnyKey(groupBuiltKeys,member);
+   const exempt=isPlayerExempt(groupId,member,groupDate);
+   if(exempt&&!built)return;
+   if(built)return;
+   const memberKey=uniqueKey(member);
+   if(!memberKey)return;
+   if(!repeatVaultMissMap.has(memberKey)){
+    repeatVaultMissMap.set(memberKey,{_name:member._name,_g:member._g||memberG(member._name),_score:0});
+   }
+   repeatVaultMissMap.get(memberKey)._score++;
+  });
+ });
+
+ const repeatNonVaultBuilders=[...repeatVaultMissMap.values()]
+  .filter(r=>r._score>=2)
+  .filter(r=>!state.g||r._g===state.g)
+  .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
+  .slice(0,10);
+
+ $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'Repeat Risk',EXEC_COPY.repeatVaultRisk)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
 
  chartPie('c1',levelCounts);
  chartLine('c2',eventTrend((state.data.vaults||[]).filter(r=>rowHasParticipation('vaults',r))))
