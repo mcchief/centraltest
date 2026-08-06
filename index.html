@@ -16,7 +16,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .dynamic-pack.two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dynamic-column{display:flex;flex-direction:column;gap:12px;min-width:0}
 .dynamic-column>.glass{margin-bottom:0}
-.dynamic-hidden{display:none!important}.vault-menu{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;align-items:start}.vault-menu .glass{margin-bottom:0}.panel-head{padding:14px 16px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.panel-body{padding:14px 16px 16px}.chartbox{height:330px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.035);padding:10px;overflow:hidden}.chip{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:11px;font-weight:900;color:#eaf7ff}
+.dynamic-hidden{display:none!important}.vault-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:start}.vault-menu .glass{margin-bottom:0}.panel-head{padding:14px 16px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.panel-body{padding:14px 16px 16px}.chartbox{height:330px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.035);padding:10px;overflow:hidden}.chip{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-size:11px;font-weight:900;color:#eaf7ff}
 .table-wrap{overflow:auto;border-top:1px solid var(--line);max-height:560px}table{width:100%;border-collapse:collapse;min-width:980px}th{position:sticky;top:0;background:#0b1f36;color:#f0f8ff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:12px;border-bottom:1px solid rgba(255,255,255,.14);z-index:2;white-space:nowrap}td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.065);font-size:13px;white-space:nowrap;vertical-align:middle}tr:hover{background:rgba(255,255,255,.045)}
 .player{font-weight:900;color:#fff;cursor:pointer;text-decoration:none}.player:hover{color:#bae6fd}
 .g-badge{display:inline-flex;align-items:center;justify-content:center;min-width:38px;min-height:24px;padding:0 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.04em;border:1px solid currentColor;background:rgba(255,255,255,.06)}
@@ -32,7 +32,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .performance-score.high{color:#9ff0c7}.performance-score.mid{color:#ffe68a}.performance-score.low{color:#ffb6c0}.performance-score.limited{color:#cbd5e1}
 .matrix-cell{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:900}
 .matrix-cell.met{color:#9ff0c7;background:rgba(56,217,150,.13)}.matrix-cell.fail{color:#ffb6c0;background:rgba(255,107,125,.13)}.matrix-cell.na{color:#cbd5e1;background:rgba(148,163,184,.12)}
-@media(max-width:1350px){.top{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
+@media(max-width:1350px){.top{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col,.vault-menu{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
 </style></head><body>
 <div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Live Intelligence Platform V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Connecting to the live WoA intelligence feed...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Intelligence</div><h1>WoA Intelligence Platform</h1><p>Live monitoring of clan performance, participation and player development across every recorded event.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
 <div id="chartTooltip" class="tooltip"></div>
@@ -266,7 +266,7 @@ const EXEC_COPY={
  exemptions:'Live leadership view of active, scheduled and historical exemptions across all events.',
  nonBuilders:'Players yet to build a vault for the selected event.',
  mostVaults:'Players with the highest number of vaults built across all recorded events.',
- repeatVaultRisk:'Players who missed two or more eligible vault events while they were active clan members. Inactive and pending players are excluded completely; join dates, departure dates and exemptions are enforced.',
+ repeatVaultRisk:'Players with 3 or more consecutive missed eligible Vault events. Successful builds reset the streak; exemptions are skipped; inactive and pending players are excluded.',
  development:'Players needing improvement based on recent growth.',
  improvers:'Players with the highest growth during the selected period.',
  decliners:'Players with the largest growth decline during the selected period.',
@@ -654,11 +654,10 @@ function renderVaults(){
  });
  const mostVaultsBuilt=Object.values(vaultBuildMap).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name))).slice(0,10);
 
- // Repeat Non Vault Builders:
- // One miss per eligible player per Vault event.
- // Exempt non-builders are excluded; exempt builders remain successful.
- // Membership dates and duplicate rows are respected.
- const repeatVaultMisses=new Map();
+ // Vault compliance intelligence is intentionally split into two independent measures:
+ // 1) Repeat Non Vault Builders = 2+ eligible misses overall, whether consecutive or not.
+ // 2) Consecutive Non Vault Builders = 3+ consecutive eligible misses; a build resets the streak.
+ // Both respect membership dates, exemptions, duplicate rows, and the roster valid for the selected event.
  const vaultEventGroups=new Map();
 
  (state.data.vaults||[]).forEach(r=>{
@@ -667,53 +666,80 @@ function renderVaults(){
   vaultEventGroups.get(groupId).push(r);
  });
 
- vaultEventGroups.forEach((groupRows,groupId)=>{
-  const groupMeta=eventMeta(groupId);
-  const groupDate=parseAnyDate(groupMeta._date)||parseAnyDate(groupRows.find(r=>r._event)?._event)||null;
-  const groupEligible=eligibleMembersForDate(groupDate);
+ const orderedVaultEvents=[...vaultEventGroups.entries()]
+  .map(([groupId,groupRows])=>{
+   const groupMeta=eventMeta(groupId);
+   const groupDate=parseAnyDate(groupMeta._date)||parseAnyDate(groupRows.find(r=>r._event)?._event)||null;
+   return {groupId,groupRows,groupDate};
+  })
+  .filter(x=>x.groupDate)
+  .sort((a,b)=>a.groupDate-b.groupDate);
 
-  // Deduplicate successful builders for this event.
-  const groupBuiltKeys=new Set();
-  groupRows
-   .filter(r=>r._name&&memberIsActiveForDate(r._name,groupDate))
-   .filter(r=>rowHasParticipation('vaults',r))
-   .forEach(r=>addKeys(groupBuiltKeys,r));
+ const repeatVaultMisses=new Map();
+ const consecutiveVaultMisses=new Map();
 
-  groupEligible.forEach(member=>{
+ (state.data.members||[]).forEach(member=>{
+  if(!member||!member._name)return;
+  if(/inactive|pending/i.test(clean(member._status)))return;
+  if(eventDate&&!memberIsActiveForDate(member._name,eventDate))return;
+
+  let totalMisses=0;
+  let currentStreak=0;
+  let longestStreak=0;
+
+  orderedVaultEvents.forEach(({groupId,groupRows,groupDate})=>{
+   // Ignore pre-join and post-departure Vaults.
    if(!memberIsActiveForDate(member._name,groupDate))return;
 
-   // The repeat-risk card must reflect the roster valid for the selected Vault event.
-   // Former members remain visible only when the selected event occurred before
-   // or on their recorded departure date.
-   if(eventDate&&!memberIsActiveForDate(member._name,eventDate))return;
-
-   const built=hasAnyKey(groupBuiltKeys,member);
    const exempt=isPlayerExempt(groupId,member,groupDate);
+   const built=groupRows
+    .filter(r=>r._name&&memberIsActiveForDate(r._name,groupDate))
+    .filter(r=>rowHasParticipation('vaults',r))
+    .some(r=>samePlayer(r,member)||hasAnyKey(new Set(vaultKeys(r)),member));
 
+   // An exemption with no build is neutral: it is not a miss and does not break the eligible-event streak.
    if(exempt&&!built)return;
-   if(built)return;
 
-   const memberKey=uniqueKey(member);
-   if(!memberKey)return;
-
-   if(!repeatVaultMisses.has(memberKey)){
-    repeatVaultMisses.set(memberKey,{
-     _name:member._name,
-     _g:member._g||memberG(member._name),
-     _score:0
-    });
+   if(built){
+    currentStreak=0;
+   }else{
+    totalMisses++;
+    currentStreak++;
+    if(currentStreak>longestStreak)longestStreak=currentStreak;
    }
-   repeatVaultMisses.get(memberKey)._score++;
   });
+
+  const memberKey=uniqueKey(member);
+  if(!memberKey)return;
+
+  if(totalMisses>=2){
+   repeatVaultMisses.set(memberKey,{
+    _name:member._name,
+    _g:member._g||memberG(member._name),
+    _score:totalMisses
+   });
+  }
+
+  if(longestStreak>=3){
+   consecutiveVaultMisses.set(memberKey,{
+    _name:member._name,
+    _g:member._g||memberG(member._name),
+    _score:longestStreak
+   });
+  }
  });
 
  const repeatNonVaultBuilders=[...repeatVaultMisses.values()]
-  .filter(r=>r._score>=2)
   .filter(r=>!state.g||r._g===state.g)
   .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
   .slice(0,10);
 
- $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'Repeat Risk',EXEC_COPY.repeatVaultRisk)}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
+ const consecutiveNonVaultBuilders=[...consecutiveVaultMisses.values()]
+  .filter(r=>!state.g||r._g===state.g)
+  .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
+  .slice(0,10);
+
+ $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'2+ Total Misses','Players with two or more eligible Vault misses overall. Misses do not need to be consecutive.')}${listCard('Consecutive Non Vault Builders',consecutiveNonVaultBuilders,'3+ Consecutive Misses','Players with three or more consecutive eligible Vault misses. A successful build resets the streak.')}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
 
  chartPie('c1',levelCounts);
  chartLine('c2',eventTrend((state.data.vaults||[]).filter(r=>rowHasParticipation('vaults',r))))
