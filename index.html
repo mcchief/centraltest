@@ -218,21 +218,24 @@ function memberIsActiveForDate(name,eventDate){
  const m=memberByName(name);
  if(!m)return true;
 
+ const status=clean(m._status);
  const join=startOfDay(parseAnyDate(m._join));
  const left=startOfDay(parseAnyDate(m._left));
  const date=startOfDay(eventDate instanceof Date?eventDate:parseAnyDate(eventDate));
 
- // Current view: only currently eligible members.
- if(!date)return !/(left|removed|inactive|pending)/i.test(clean(m._status));
+ // Inactive and pending players must never appear in any operational
+ // or historical eligibility, repeat-risk, or non-builder list.
+ if(/inactive|pending/i.test(status))return false;
 
- // Historical view: membership is determined by the actual join/leave period.
- // A player is included from Join Date through Leave Date, inclusive.
+ // Current view: only currently eligible members.
+ if(!date)return !/(left|removed)/i.test(status);
+
+ // Historical view: include players only during their recorded clan period.
  if(join&&date.getTime()<join.getTime())return false;
  if(left&&date.getTime()>left.getTime())return false;
 
- // A status without a usable departure date cannot safely be projected backwards.
- if(!left&&/(left|removed)/i.test(clean(m._status)))return false;
- if(/pending/i.test(clean(m._status)))return false;
+ // Left/removed status without a usable departure date cannot be projected historically.
+ if(!left&&/(left|removed)/i.test(status))return false;
 
  return true;
 }
@@ -263,7 +266,7 @@ const EXEC_COPY={
  exemptions:'Live leadership view of active, scheduled and historical exemptions across all events.',
  nonBuilders:'Players yet to build a vault for the selected event.',
  mostVaults:'Players with the highest number of vaults built across all recorded events.',
- repeatVaultRisk:'Players who missed two or more eligible vault events while they were clan members. Join dates, departure dates and exemptions are enforced.',
+ repeatVaultRisk:'Players who missed two or more eligible vault events while they were active clan members. Inactive and pending players are excluded completely; join dates, departure dates and exemptions are enforced.',
  development:'Players needing improvement based on recent growth.',
  improvers:'Players with the highest growth during the selected period.',
  decliners:'Players with the largest growth decline during the selected period.',
