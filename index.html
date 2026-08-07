@@ -266,7 +266,7 @@ const EXEC_COPY={
  exemptions:'Live leadership view of active, scheduled and historical exemptions across all events.',
  nonBuilders:'Players yet to build a vault for the selected event.',
  mostVaults:'Players with the highest number of vaults built across all recorded events.',
- repeatVaultRisk:'Players with 3 or more consecutive missed eligible Vault events. Successful builds reset the streak; exemptions are skipped; inactive and pending players are excluded.',
+ repeatVaultRisk:'Players currently on 3 or more consecutive eligible Vault misses. A successful build resets the streak to zero; exemptions are skipped; inactive and pending players are excluded.',
  development:'Players needing improvement based on recent growth.',
  improvers:'Players with the highest growth during the selected period.',
  decliners:'Players with the largest growth decline during the selected period.',
@@ -685,7 +685,6 @@ function renderVaults(){
 
   let totalMisses=0;
   let currentStreak=0;
-  let longestStreak=0;
 
   orderedVaultEvents.forEach(({groupId,groupRows,groupDate})=>{
    // Ignore pre-join and post-departure Vaults.
@@ -697,15 +696,15 @@ function renderVaults(){
     .filter(r=>rowHasParticipation('vaults',r))
     .some(r=>samePlayer(r,member)||hasAnyKey(new Set(vaultKeys(r)),member));
 
-   // An exemption with no build is neutral: it is not a miss and does not break the eligible-event streak.
+   // An exemption with no build is neutral: it does not count as a miss and does not reset the streak.
    if(exempt&&!built)return;
 
    if(built){
+    // A successful build clears the active consecutive-miss streak.
     currentStreak=0;
    }else{
     totalMisses++;
     currentStreak++;
-    if(currentStreak>longestStreak)longestStreak=currentStreak;
    }
   });
 
@@ -720,11 +719,13 @@ function renderVaults(){
    });
   }
 
-  if(longestStreak>=3){
+  // Consecutive card shows the unresolved CURRENT streak only.
+  // Historical streaks broken by a later build are not shown.
+  if(currentStreak>=3){
    consecutiveVaultMisses.set(memberKey,{
     _name:member._name,
     _g:member._g||memberG(member._name),
-    _score:longestStreak
+    _score:currentStreak
    });
   }
  });
@@ -739,7 +740,7 @@ function renderVaults(){
   .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
   .slice(0,10);
 
- $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'2+ Total Misses','Players with two or more eligible Vault misses overall. Misses do not need to be consecutive.')}${listCard('Consecutive Non Vault Builders',consecutiveNonVaultBuilders,'3+ Consecutive Misses','Players with three or more consecutive eligible Vault misses. A successful build resets the streak.')}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
+ $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Non-exempt missing builders remain visible. Exempt non-builders are excluded; exempt builders remain included.')}<section class="vault-menu">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'2+ Total Misses','Players with two or more eligible Vault misses overall. Misses do not need to be consecutive.')}${listCard('Consecutive Non Vault Builders',consecutiveNonVaultBuilders,'3+ Consecutive Misses','Players currently on three or more consecutive eligible Vault misses. A successful build resets the active streak to zero.')}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
 
  chartPie('c1',levelCounts);
  chartLine('c2',eventTrend((state.data.vaults||[]).filter(r=>rowHasParticipation('vaults',r))))
