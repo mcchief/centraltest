@@ -273,7 +273,8 @@ const EXEC_COPY={
  underperformers:'Every eligible non-exempt player below the required event target, ranked worst percentage achieved first.',
  outstanding:'Eligible players not yet entered for the selected event, excluding exemptions.',
  topPerformers:'Top performers for the selected event.',
- repeatRisk:'Players below target in multiple events.'
+ repeatRisk:'Players below target in multiple events.',
+ consecutiveRisk:'Players currently on 3 or more consecutive eligible underperforming events. Meeting target resets the streak; valid exemptions are skipped.'
 };
 function activeRosterMembers(){return state.data.members.filter(m=>!/(left|removed|inactive|pending)/i.test(m._status))}
 function isCurrentEligibleMember(m){return m&&!/(left|removed|inactive|pending)/i.test(m._status)}
@@ -367,6 +368,7 @@ function renderEventModule(k,title,scoreLabel){
    ${listCard('Underperformers',underperformers,'Underperformers',EXEC_COPY.underperformers)}
    ${listCard('Top Performers',[...participantRows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}
    ${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}
+   ${listCard('Consecutive Underperformers',consecutiveUnder(k,eventId).slice(0,10),'3+ Consecutive',EXEC_COPY.consecutiveRisk)}
  </section>`;
 
  chartBar('c1',topObj(participantRows,'_name','_score',10));
@@ -401,6 +403,93 @@ function repeatUnder(k,eventId=''){
   }
  });
  return Object.values(map).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
+}
+
+/*
+ Consecutive Underperformers for score-based events.
+ - Applies to Tinman, Dark Omens, Trials/Olympus, Ragnarök and Chest Points.
+ - Current unresolved streak only.
+ - 3+ consecutive eligible failures are shown.
+ - Meeting target resets streak to zero.
+ - Valid exempt non-participation is neutral: skipped, neither fail nor reset.
+ - Inactive/Pending players are excluded.
+ - Join/leave periods are enforced.
+ - When an event is selected, the card reflects the roster valid for that event.
+*/
+function consecutiveUnder(k,eventId=''){
+ const allowed=['tinman','darkOmens','trials','ragnarok','chestpoints'];
+ if(!allowed.includes(k))return[];
+
+ const selectedEventDate=parseAnyDate(eventMeta(eventId)._date)||null;
+ const rows=(state.data[k]||[]).filter(r=>clean(r._name));
+
+ // Group rows into chronological event instances.
+ const groups=new Map();
+ rows.forEach(r=>{
+  const groupId=clean(r._eventId)||clean(r._event)||'Unknown Event';
+  if(!groups.has(groupId))groups.set(groupId,[]);
+  groups.get(groupId).push(r);
+ });
+
+ const ordered=[...groups.entries()]
+  .map(([groupId,groupRows])=>{
+   const meta=eventMeta(groupId);
+   const groupDate=parseAnyDate(meta._date)||parseAnyDate(groupRows.find(r=>r._event)?._event)||null;
+   return {groupId,groupRows,groupDate,meta};
+  })
+  .filter(x=>x.groupDate)
+  .sort((a,b)=>a.groupDate-b.groupDate);
+
+ const out=[];
+
+ (state.data.members||[]).forEach(member=>{
+  if(!member||!clean(member._name))return;
+  if(/inactive|pending/i.test(clean(member._status)))return;
+
+  // For a selected event, only show players who belonged to the valid roster then.
+  if(selectedEventDate&&!memberIsActiveForDate(member._name,selectedEventDate))return;
+
+  let currentStreak=0;
+
+  ordered.forEach(({groupId,groupRows,groupDate,meta})=>{
+   if(!memberIsActiveForDate(member._name,groupDate))return;
+
+   // Pick the player's best/most complete row for the event, if duplicates exist.
+   const matches=groupRows.filter(r=>samePlayer(r,member));
+   const row=matches.length
+    ? [...matches].sort((a,b)=>num(b._score)-num(a._score))[0]
+    : null;
+
+   const participated=row?rowHasParticipation(k,row):false;
+   const exempt=isPlayerExempt(groupId,member,groupDate);
+
+   // Valid exempt non-participation is neutral.
+   if(exempt&&!participated)return;
+
+   const target=num(row?._target)||num(meta?._target);
+   if(target<=0)return;
+
+   const score=row?num(row._score):0;
+
+   if(score>=target){
+    currentStreak=0;
+   }else{
+    currentStreak++;
+   }
+  });
+
+  if(currentStreak>=3){
+   out.push({
+    _name:member._name,
+    _g:member._g||memberG(member._name),
+    _score:currentStreak
+   });
+  }
+ });
+
+ return out
+  .filter(r=>!state.g||r._g===state.g)
+  .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)));
 }
 
 function parseAnyDate(v){v=clean(v);if(!v)return null;let d=new Date(v);if(!isNaN(d))return d;let m=v.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=v.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);return null}
