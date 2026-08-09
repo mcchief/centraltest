@@ -230,7 +230,7 @@ function memberIsActiveForDate(name,eventDate){
  return true;
 }
 function heroTrackingActive(week){return !!week&&String(week).localeCompare('2026-08-01')>=0}
-function heroLevelText(r){return heroTrackingActive(r?._week)&&num(r?._hero)>0?'H'+fmt(r._hero):'—'}
+function heroLevelText(r){return heroTrackingActive(r?._week)&&num(r?._hero)>0?fmt(r._hero):'—'}
 function growthRowsForWeek(week){return state.data.growthRaw.filter(r=>r._week===week)}
 function getPlayerGrowthTotal(name){const rows=(state.data.growthRaw||[]).filter(r=>key(r._name)===key(name)&&r._week).sort((a,b)=>String(a._week).localeCompare(String(b._week))); if(rows.length>1)return rows[rows.length-1]._might-rows[0]._might; return null}
 function playerTimeline(name){const kk=key(name), out=[]; const add=(r, event, scoreLabel)=>{out.push({_date:r._event,_event:event,_g:r._g||memberG(r._name),_target:r._target,_score:r._score,_status:r._status||((r._score>=r._target)?'Met Target':'Below Target'),_type:'score',_label:scoreLabel})};
