@@ -49,7 +49,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 <div class="modal" id="modal"><div class="modal-card"><div class="modal-head"><div><h2 class="modal-title" id="modalTitle">Player Profile</h2><p class="sub" id="modalSub">Player performance and progression across recorded events.</p></div><button class="close" id="closeModal">×</button></div><div class="modal-body"><div class="profile-grid" id="profileGrid"></div><div class="profile-tabs" id="profileTabs"></div><div id="profileContent"></div></div></div></div>
 <script>
 /* WoA Live Intelligence Platform */
-/* Layout refinement: global shortest-column masonry packing enabled for all variable-height intelligence containers across all modules and tabs. */
+/* Production layout: score events and Vaults use compact fixed intelligence columns; repeat-risk cards sit directly below consecutive-risk cards. */
 const CONFIG={
  settings:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=332629248&single=true&output=csv',
  members:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=2078620130&single=true&output=csv',
@@ -402,10 +402,10 @@ function renderEventModule(k,title,scoreLabel){
    <div class="dynamic-column">
      ${listCard('Top Performers',[...participantRows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}
      ${listCard('Consecutive Underperformers',consecutiveUnder(k,eventId).slice(0,10),'3+ Consecutive',EXEC_COPY.consecutiveRisk)}
+     ${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}
    </div>
    <div class="dynamic-column">
      ${redZoneCard(redZone,eventId,eventDate)}
-     ${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}
    </div>
  </section>`;
 
@@ -830,7 +830,18 @@ function renderVaults(){
   .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
   .slice(0,10);
 
- $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Vault completion status for eligible players in the selected event.')}<section class="vault-menu dynamic-source" data-pack-max="3">${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'2+ Total Misses','Players with two or more eligible vault misses across recorded events.')}${listCard('Consecutive Non Vault Builders',consecutiveNonVaultBuilders,'3+ Consecutive Misses','Players currently on three or more consecutive eligible vault misses.')}${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}</section>`;
+ $('app').innerHTML=`<section class="content-head glass"><h2>Vaults</h2><p class="sub">${EXEC_COPY.vaults}</p></section><section class="kpis">${kpiHtml([['Available Members',baseAvailable],['Effective Exemptions',effectiveExemptions.length],['Exempt but Built',exemptButParticipated.length],['Eligible Builders',eligible],['Built Vaults',built],['Non Vault Builders',nonBuilders],['Completion %',pct(built,eligible)],['Highest Vault Level',Math.max(0,...levels)]])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>Vault Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Vault Build Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Vault Results',resultRows.sort((a,b)=>num(b._vault)-num(a._vault)||String(a._name).localeCompare(String(b._name))),['Rank','Player','G-Level','Vault Level','Status'],r=>[r._rank||'',pLink(r._name),gBadge(r._g||memberG(r._name)),fmt(r._vault),statusBadge(r._vaultStatus)],'Vault completion status for eligible players in the selected event.')}<section class="vault-menu">
+  <div class="dynamic-column">
+    ${listCard('Non Vault Builders',nonBuilderList,'Missing Builders',EXEC_COPY.nonBuilders)}
+  </div>
+  <div class="dynamic-column">
+    ${listCard('Most Vaults Built',mostVaultsBuilt,'Vaults Built',EXEC_COPY.mostVaults)}
+  </div>
+  <div class="dynamic-column">
+    ${listCard('Consecutive Non Vault Builders',consecutiveNonVaultBuilders,'3+ Consecutive Misses','Players currently on three or more consecutive eligible vault misses.')}
+    ${listCard('Repeat Non Vault Builders',repeatNonVaultBuilders,'2+ Total Misses','Players with two or more eligible vault misses across recorded events.')}
+  </div>
+</section>`;
 
  chartPie('c1',levelCounts);
  chartLine('c2',eventTrend((state.data.vaults||[]).filter(r=>rowHasParticipation('vaults',r))))
