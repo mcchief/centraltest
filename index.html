@@ -11,7 +11,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 12px;align-items:start;width:100%}.kpi{border-radius:18px;background:rgba(255,255,255,.055);border:1px solid var(--line);padding:14px;min-height:92px}.kpi.info{background:linear-gradient(180deg,rgba(14,116,144,.70),rgba(12,74,110,.80))}.kpi.good{background:linear-gradient(180deg,rgba(26,77,65,.72),rgba(14,38,36,.78))}.kpi.purple{background:linear-gradient(180deg,rgba(88,28,135,.72),rgba(59,7,100,.82))}.kpi.warn{background:linear-gradient(180deg,rgba(92,67,28,.72),rgba(40,30,15,.82))}.kpi.bad{background:linear-gradient(180deg,rgba(95,34,48,.72),rgba(43,17,24,.82))}
 .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:900}.value{font-weight:900;font-size:clamp(24px,2.5vw,38px);line-height:1;margin-top:10px;letter-spacing:-.04em}.note{font-size:12px;color:#d7ebff;margin-top:8px;line-height:1.45;font-weight:700}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px}.tab{border:1px solid var(--line);background:rgba(255,255,255,.055);color:#fff;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.tab.active,.btn:hover,.tab:hover{background:linear-gradient(135deg,rgba(56,189,248,.36),rgba(167,139,250,.3));border-color:rgba(147,197,253,.55)}
-.content-head{padding:16px 18px}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:start}.intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;align-items:start;grid-auto-flow:dense}.growth-intel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;align-items:start}.growth-intel-grid .glass{margin-bottom:0}.g-roster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;align-items:start}.g-roster-column{display:flex;flex-direction:column;gap:12px;min-width:0}.g-roster-grid .glass{margin-bottom:0}.g-roster-grid .list li{grid-template-columns:minmax(0,1fr) 120px}
+.content-head{padding:16px 18px}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:start}.intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;align-items:start;grid-auto-flow:dense}.score-intel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:start}.score-intel-grid .glass{margin-bottom:0}.growth-intel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;align-items:start}.growth-intel-grid .glass{margin-bottom:0}.g-roster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;align-items:start}.g-roster-column{display:flex;flex-direction:column;gap:12px;min-width:0}.g-roster-grid .glass{margin-bottom:0}.g-roster-grid .list li{grid-template-columns:minmax(0,1fr) 120px}
 .dynamic-pack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:start}
 .dynamic-pack.two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dynamic-column{display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -32,7 +32,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .performance-score.high{color:#9ff0c7}.performance-score.mid{color:#ffe68a}.performance-score.low{color:#ffb6c0}.performance-score.limited{color:#cbd5e1}
 .matrix-cell{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:900}
 .matrix-cell.met{color:#9ff0c7;background:rgba(56,217,150,.13)}.matrix-cell.fail{color:#ffb6c0;background:rgba(255,107,125,.13)}.matrix-cell.na{color:#cbd5e1;background:rgba(148,163,184,.12)}
-@media(max-width:1350px){.top{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col,.vault-menu{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
+@media(max-width:1350px){.top{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.score-intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col,.vault-menu{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
 </style></head><body>
 <div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Live Intelligence Platform V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Connecting to the live WoA intelligence feed...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Intelligence</div><h1>WoA Intelligence Platform</h1><p>Live monitoring of clan performance, participation and player development across every recorded event.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
 <div id="chartTooltip" class="tooltip"></div>
@@ -100,7 +100,7 @@ const gColor=g=>({G9:'var(--g9)',G8:'var(--g8)',G7:'var(--g7)',G6:'var(--g6)',G5
 const gBadge=g=>{const v=clean(g)||'Unknown';return `<span class="g-badge ${gClass(v)}">${esc(v)}</span>`};
 const field=(o,names)=>{if(!o)return'';for(const n of names){if(Object.prototype.hasOwnProperty.call(o,n)&&clean(o[n])!=='')return clean(o[n])}const idx=Object.fromEntries(Object.keys(o).map(k=>[canonicalHeader(k),k]));for(const n of names){const k=idx[canonicalHeader(n)];if(k&&clean(o[k])!=='')return clean(o[k])}return ''}; const statusBadge=s=>{s=clean(s)||'-'; let cls=/expired/i.test(s)?'expired':/scheduled/i.test(s)?'scheduled':/returned/i.test(s)?'returned':/^new/i.test(s)?'new':/met|active/i.test(s)?'met':/left|below|fail|missing/i.test(s)?'fail':/pending|inactive/i.test(s)?'warnb':'warnb'; return `<span class="badge ${cls}">${esc(s)}</span>`}; const pLink=n=>`<a class="player" onclick="openProfile('${escAttr(n)}')">${esc(n)}</a>`;
 function normalize(){return state.data}
-function activeMembers(){return state.data.members.filter(m=>!/(left|removed)/i.test(m._status))} function memberByName(n){const k=key(n);return state.data.members.find(m=>key(m._name)===k)||state.data.members.find(m=>key(m._name).includes(k))} function memberById(id){const k=key(id);return k?state.data.members.find(m=>key(m._id)===k):null} function memberG(n){return memberByName(n)?._g||''} function filteredRows(rows){return state.g?rows.filter(r=>(r._g||memberG(r._name))===state.g):rows} function selectedRows(rows){let r=filteredRows(rows);if(state.selected)r=r.filter(x=>x._eventId===state.selected||x._event===state.selected||x._week===state.selected);return r} function eventMeta(id){return state.data.eventSetup.find(e=>e._id===id)||{}}
+function activeMembers(){return state.data.members.filter(m=>memberIsActiveForDate(m._name,todayDate()))} function memberByName(n){const k=key(n);return state.data.members.find(m=>key(m._name)===k)} function memberById(id){const k=key(id);return k?state.data.members.find(m=>key(m._id)===k):null} function memberG(n){return memberByName(n)?._g||''} function filteredRows(rows){return state.g?rows.filter(r=>(r._g||memberG(r._name))===state.g):rows} function selectedRows(rows){let r=filteredRows(rows);if(state.selected)r=r.filter(x=>x._eventId===state.selected||x._event===state.selected||x._week===state.selected);return r} function eventMeta(id){return state.data.eventSetup.find(e=>e._id===id)||{}}
 function startOfDay(d){if(!(d instanceof Date)||isNaN(d))return null;return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
 function todayDate(){return startOfDay(new Date())}
 function eventDateForExemption(x){const meta=clean(x?._eventId)?eventMeta(x._eventId):{};return startOfDay(parseAnyDate(meta._date)||parseAnyDate(x?._event)||parseAnyDate(x?._fromDate))}
@@ -217,26 +217,15 @@ function renderHero(){const current=activeRosterMembers(),active=activeMembers()
 function memberIsActiveForDate(name,eventDate){
  const m=memberByName(name);
  if(!m)return true;
-
  const status=clean(m._status);
  const join=startOfDay(parseAnyDate(m._join));
  const left=startOfDay(parseAnyDate(m._left));
- const date=startOfDay(eventDate instanceof Date?eventDate:parseAnyDate(eventDate));
-
- // Inactive and pending players must never appear in any operational
- // or historical eligibility, repeat-risk, or non-builder list.
+ const date=startOfDay(eventDate instanceof Date?eventDate:parseAnyDate(eventDate))||todayDate();
  if(/inactive|pending/i.test(status))return false;
-
- // Current view: only currently eligible members.
- if(!date)return !/(left|removed)/i.test(status);
-
- // Historical view: include players only during their recorded clan period.
  if(join&&date.getTime()<join.getTime())return false;
- if(left&&date.getTime()>left.getTime())return false;
-
- // Left/removed status without a usable departure date cannot be projected historically.
+ // Departure is effective on Date Left: only events strictly before that date count.
+ if(left&&date.getTime()>=left.getTime())return false;
  if(!left&&/(left|removed)/i.test(status))return false;
-
  return true;
 }
 function growthRowsForWeek(week){return state.data.growthRaw.filter(r=>r._week===week)}
@@ -276,8 +265,8 @@ const EXEC_COPY={
  repeatRisk:'Players below target in multiple events.',
  consecutiveRisk:'Players currently on 3 or more consecutive eligible underperforming events. Meeting target resets the streak; valid exemptions are skipped.'
 };
-function activeRosterMembers(){return state.data.members.filter(m=>!/(left|removed|inactive|pending)/i.test(m._status))}
-function isCurrentEligibleMember(m){return m&&!/(left|removed|inactive|pending)/i.test(m._status)}
+function activeRosterMembers(){return state.data.members.filter(m=>memberIsActiveForDate(m._name,todayDate()))}
+function isCurrentEligibleMember(m){return !!(m&&memberIsActiveForDate(m._name,todayDate()))}
 function renderOverview(){const a=activeRosterMembers(),members=state.data.members,snap=latestGrowthSnapshot(),roster=snap.length?snap:a.map(m=>({_name:m._name,_g:m._g,_vault:m._vault,_status:m._status,_might:m._might})),total=latestGrowthTotal(),avg=roster.length?total/roster.length:0,high=Math.max(0,...roster.map(m=>m._might)),low=Math.min(...roster.map(m=>m._might).filter(v=>num(v)>0)),latest=latestGrowthWeek();$('app').innerHTML=`<section class="content-head glass"><h2>Overview</h2><p class="sub">${EXEC_COPY.overview}${latest?' Latest might snapshot: '+esc(latest)+'.':''}</p></section><section class="kpis">${kpiHtml([['Total Clan Might',short(total)],['Active Players',a.length],['Current Members',a.length],['Average Might',short(avg)],['Highest Might',short(high)],['Lowest Might',isFinite(low)?short(low):'-'],['Growth Snapshot',latest||'-']])}</section><section class="chart-grid"><div class="glass"><div class="panel-head"><h3>G-Level Distribution</h3></div><div class="panel-body"><div class="chartbox" id="c1"></div></div></div><div class="glass"><div class="panel-head"><h3>Clan Might Trend</h3></div><div class="panel-body"><div class="chartbox" id="c2"></div></div></div></section>${tableCard('Top 10 Strongest Active Players',[...roster].sort((x,y)=>y._might-x._might).slice(0,10),['Player','G-Level','Might','Vault Level','Status'],r=>[pLink(r._name),gBadge(r._g),fmt(r._might),fmt(r._vault),statusBadge(r._status)],'Highest-current-might active roster members from the latest Growth Raw Data snapshot.')}`;chartPie('c1',groupCount(a,'_g'));chartLine('c2',growthTrend())}
 function growthPlayerHistory(name, beforeWeek=''){const kk=key(name);return (state.data.growthRaw||[]).filter(r=>key(r._name)===kk&&r._week&&(!beforeWeek||String(r._week).localeCompare(String(beforeWeek))<0)).sort((a,b)=>String(a._week).localeCompare(String(b._week)))}
 function growthLifecycleSnapshot(selectedWeek){const weeks=growthWeeks(),idx=weeks.indexOf(selectedWeek),prevWeek=idx>0?weeks[idx-1]:'';const currentRows=growthRowsForWeek(selectedWeek),previousRows=prevWeek?growthRowsForWeek(prevWeek):[];const currentMap=new Map(currentRows.map(r=>[key(r._name),r]));const previousMap=new Map(previousRows.map(r=>[key(r._name),r]));const earlierByPlayer=new Map(),firstByPlayer=new Map();(state.data.growthRaw||[]).forEach(r=>{if(!r._week||String(r._week).localeCompare(String(selectedWeek))>0)return;const kk=key(r._name);if(!kk)return;const first=firstByPlayer.get(kk);if(!first||String(r._week).localeCompare(String(first._week))<0)firstByPlayer.set(kk,r);if(String(r._week).localeCompare(String(selectedWeek))<0){const last=earlierByPlayer.get(kk);if(!last||String(r._week).localeCompare(String(last._week))>0)earlierByPlayer.set(kk,r)}});let current=currentRows.map(r=>{const kk=key(r._name),prev=previousMap.get(kk),last=earlierByPlayer.get(kk),first=firstByPlayer.get(kk);let lifecycle='New',growth=null,growthPct=null,lastSeen='—',growthLabel='New Member';if(prev){lifecycle='Active';growth=r._might-prev._might;growthPct=prev._might>0?(growth/prev._might)*100:null;lastSeen=prevWeek;growthLabel=fmt(growth)}else if(last){lifecycle='Returned';growth=r._might-last._might;lastSeen=last._week;growthLabel=fmt(growth)+' since '+last._week}return {...r,_g:r._g||memberG(r._name),_lifecycle:lifecycle,_change:growth,_growthPct:growthPct,_previousMight:prev?prev._might:null,_growthLabel:growthLabel,_lastSeen:lastSeen,_firstWeek:first?first._week:r._week,_total:first?r._might-first._might:0}});const leftMap=new Map();previousRows.forEach(r=>{const kk=key(r._name);if(!kk||currentMap.has(kk)||leftMap.has(kk))return;leftMap.set(kk,{...r,_g:r._g||memberG(r._name),_lifecycle:'Left',_change:null,_lastSeen:prevWeek})});const left=[...leftMap.values()];return {weeks,selectedWeek,prevWeek,current,left,active:current.filter(r=>r._lifecycle==='Active'),newMembers:current.filter(r=>r._lifecycle==='New'),returned:current.filter(r=>r._lifecycle==='Returned')}}
@@ -364,7 +353,7 @@ function renderEventModule(k,title,scoreLabel){
 
  ${resultsTable}
 
- <section class="intel-grid">
+ <section class="score-intel-grid">
    ${listCard('Underperformers',underperformers,'Underperformers',EXEC_COPY.underperformers)}
    ${listCard('Top Performers',[...participantRows].sort((a,b)=>b._score-a._score).slice(0,10),'Top',EXEC_COPY.topPerformers)}
    ${listCard('Repeat Underperformers',repeatUnder(k,eventId).slice(0,10),'Repeat Risk',EXEC_COPY.repeatRisk)}
@@ -379,32 +368,28 @@ function renderEventModule(k,title,scoreLabel){
 function repeatUnder(k,eventId=''){
  const map={};
  const selectedEventDate=parseAnyDate(eventMeta(eventId)._date)||null;
+ const referenceDate=selectedEventDate||todayDate();
  (state.data[k]||[]).forEach(r=>{
   if(!clean(r._name)||r._target<=0)return;
   const rowEventId=clean(r._eventId)||clean(eventId);
   const rowEventDate=parseAnyDate(eventMeta(rowEventId)._date)||parseAnyDate(r._event);
+  if(!rowEventDate)return;
+  if(referenceDate&&rowEventDate.getTime()>referenceDate.getTime())return;
   const participated=rowHasParticipation(k,r);
-
-  // A player is valid only for events that occurred while they were still a member.
-  // Historical records before departure remain included; records after departure are excluded.
   if(!memberIsActiveForDate(r._name,rowEventDate))return;
-
-  // When viewing a selected event, the repeat-risk list must also reflect the roster
-  // that was valid on that selected event date.
-  if(selectedEventDate&&!memberIsActiveForDate(r._name,selectedEventDate))return;
-
-  // Exempt non-participants do not count as underperformers.
+  if(!memberIsActiveForDate(r._name,referenceDate))return;
   if(rowIsExempt(rowEventId,r,rowEventDate)&&!participated)return;
-
   if(r._score<r._target){
    const kk=key(r._name);
    map[kk]=map[kk]||{_name:r._name,_g:r._g||memberG(r._name),_score:0};
    map[kk]._score++;
   }
  });
- return Object.values(map).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)))
+ return Object.values(map)
+  .filter(r=>r._score>=2)
+  .filter(r=>!state.g||r._g===state.g)
+  .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)));
 }
-
 /*
  Consecutive Underperformers for score-based events.
  - Applies to Tinman, Dark Omens, Trials/Olympus, Ragnarök and Chest Points.
@@ -419,18 +404,15 @@ function repeatUnder(k,eventId=''){
 function consecutiveUnder(k,eventId=''){
  const allowed=['tinman','darkOmens','trials','ragnarok','chestpoints'];
  if(!allowed.includes(k))return[];
-
  const selectedEventDate=parseAnyDate(eventMeta(eventId)._date)||null;
+ const referenceDate=selectedEventDate||todayDate();
  const rows=(state.data[k]||[]).filter(r=>clean(r._name));
-
- // Group rows into chronological event instances.
  const groups=new Map();
  rows.forEach(r=>{
   const groupId=clean(r._eventId)||clean(r._event)||'Unknown Event';
   if(!groups.has(groupId))groups.set(groupId,[]);
   groups.get(groupId).push(r);
  });
-
  const ordered=[...groups.entries()]
   .map(([groupId,groupRows])=>{
    const meta=eventMeta(groupId);
@@ -438,60 +420,29 @@ function consecutiveUnder(k,eventId=''){
    return {groupId,groupRows,groupDate,meta};
   })
   .filter(x=>x.groupDate)
+  .filter(x=>!referenceDate||x.groupDate.getTime()<=referenceDate.getTime())
   .sort((a,b)=>a.groupDate-b.groupDate);
-
  const out=[];
-
  (state.data.members||[]).forEach(member=>{
   if(!member||!clean(member._name))return;
-  if(/inactive|pending/i.test(clean(member._status)))return;
-
-  // For a selected event, only show players who belonged to the valid roster then.
-  if(selectedEventDate&&!memberIsActiveForDate(member._name,selectedEventDate))return;
-
+  if(!memberIsActiveForDate(member._name,referenceDate))return;
   let currentStreak=0;
-
   ordered.forEach(({groupId,groupRows,groupDate,meta})=>{
    if(!memberIsActiveForDate(member._name,groupDate))return;
-
-   // Pick the player's best/most complete row for the event, if duplicates exist.
    const matches=groupRows.filter(r=>samePlayer(r,member));
-   const row=matches.length
-    ? [...matches].sort((a,b)=>num(b._score)-num(a._score))[0]
-    : null;
-
+   const row=matches.length?[...matches].sort((a,b)=>num(b._score)-num(a._score))[0]:null;
    const participated=row?rowHasParticipation(k,row):false;
    const exempt=isPlayerExempt(groupId,member,groupDate);
-
-   // Valid exempt non-participation is neutral.
    if(exempt&&!participated)return;
-
    const target=num(row?._target)||num(meta?._target);
    if(target<=0)return;
-
    const score=row?num(row._score):0;
-
-   if(score>=target){
-    currentStreak=0;
-   }else{
-    currentStreak++;
-   }
+   if(score>=target)currentStreak=0; else currentStreak++;
   });
-
-  if(currentStreak>=3){
-   out.push({
-    _name:member._name,
-    _g:member._g||memberG(member._name),
-    _score:currentStreak
-   });
-  }
+  if(currentStreak>=3)out.push({_name:member._name,_g:member._g||memberG(member._name),_score:currentStreak});
  });
-
- return out
-  .filter(r=>!state.g||r._g===state.g)
-  .sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)));
+ return out.filter(r=>!state.g||r._g===state.g).sort((a,b)=>b._score-a._score||String(a._name).localeCompare(String(b._name)));
 }
-
 function parseAnyDate(v){v=clean(v);if(!v)return null;let d=new Date(v);if(!isNaN(d))return d;let m=v.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=v.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);return null}
 function eventDateFromSelection(rows){let meta=state.selected?eventMeta(state.selected):{};return parseAnyDate(meta._date)||parseAnyDate(rows.find(r=>r._event)?._event)||null}
 function eligibleMembersForDate(eventDate){
@@ -755,6 +706,7 @@ function renderVaults(){
   vaultEventGroups.get(groupId).push(r);
  });
 
+ const vaultReferenceDate=eventDate||todayDate();
  const orderedVaultEvents=[...vaultEventGroups.entries()]
   .map(([groupId,groupRows])=>{
    const groupMeta=eventMeta(groupId);
@@ -762,6 +714,7 @@ function renderVaults(){
    return {groupId,groupRows,groupDate};
   })
   .filter(x=>x.groupDate)
+  .filter(x=>!vaultReferenceDate||x.groupDate.getTime()<=vaultReferenceDate.getTime())
   .sort((a,b)=>a.groupDate-b.groupDate);
 
  const repeatVaultMisses=new Map();
@@ -769,8 +722,7 @@ function renderVaults(){
 
  (state.data.members||[]).forEach(member=>{
   if(!member||!member._name)return;
-  if(/inactive|pending/i.test(clean(member._status)))return;
-  if(eventDate&&!memberIsActiveForDate(member._name,eventDate))return;
+  if(!memberIsActiveForDate(member._name,vaultReferenceDate))return;
 
   let totalMisses=0;
   let currentStreak=0;
