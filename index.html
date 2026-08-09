@@ -12,6 +12,8 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:900}.value{font-weight:900;font-size:clamp(24px,2.5vw,38px);line-height:1;margin-top:10px;letter-spacing:-.04em}.note{font-size:12px;color:#d7ebff;margin-top:8px;line-height:1.45;font-weight:700}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px}.tab{border:1px solid var(--line);background:rgba(255,255,255,.055);color:#fff;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.tab.active,.btn:hover,.tab:hover{background:linear-gradient(135deg,rgba(56,189,248,.36),rgba(167,139,250,.3));border-color:rgba(147,197,253,.55)}
 .content-head{padding:16px 18px}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:start}.intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;align-items:start;grid-auto-flow:dense}.score-intel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:start}.score-intel-grid .glass{margin-bottom:0}.growth-intel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;align-items:start}.growth-intel-grid .glass{margin-bottom:0}.g-roster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;align-items:start}.g-roster-column{display:flex;flex-direction:column;gap:12px;min-width:0}.g-roster-grid .glass{margin-bottom:0}.g-roster-grid .list li{grid-template-columns:minmax(0,1fr) 90px 120px}
+.g-roster-head{display:grid;grid-template-columns:minmax(0,1fr) 90px 120px;gap:10px;align-items:center;padding:2px 0 9px;margin-bottom:1px;border-bottom:1px solid rgba(255,255,255,.13);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.g-roster-head span:nth-child(2),.g-roster-head span:nth-child(3){text-align:left}
 .dynamic-pack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:start}
 .dynamic-pack.two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dynamic-column{display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -287,7 +289,7 @@ function growthGLevelRoster(analysis){
  const cards=groups.map(x=>card(
   x.g==='Unknown / Unassigned'?x.g:x.g+' Members',
   x.g==='Unknown / Unassigned'?'Players in the selected week without a valid G4–G9 classification.':'Players in the selected Growth Raw Data week classified as '+x.g+'.',
-  `<ul class="list">${x.rows.map(r=>`<li><span>${pLink(r._name)}</span><span>${heroLevelText(r)}</span><span>${short(r._might)}</span></li>`).join('')}</ul>`,
+  `<div class="g-roster-head"><span>Player</span><span>Hero Level</span><span>Might</span></div><ul class="list">${x.rows.map(r=>`<li><span>${pLink(r._name)}</span><span>${heroLevelText(r)}</span><span>${short(r._might)}</span></li>`).join('')}</ul>`,
   x.rows.length+' members',
   'g-card '+gClass(x.g)
  )).join('');
