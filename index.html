@@ -186,12 +186,12 @@ function listCard(title,rows,chip,sub='Live leadership focus for the current sel
 function redZoneCard(rows){
  return card(
   '🔴 Red Zone Players',
-  'Players below 20% of their required target for the selected event. Standard exemption rules remain enforced.',
+  'Players achieving 80% or less of their required target for the selected event.',
   rows.length?`<div class="red-zone-head"><span>Player</span><span>G-Level</span><span>Points</span><span>Achievement</span></div><ul class="red-zone-list">${rows.map(r=>{
    const achievement=r._target>0?(r._score/r._target)*100:0;
    return `<li><span>${pLink(r._name)}</span><span>${gBadge(r._g||memberG(r._name)||'')}</span><span class="red-zone-points">${fmt(r._score)}</span><span class="red-zone-pct">${achievement.toFixed(1)}%</span></li>`;
-  }).join('')}</ul>`:`<div class="empty">No players are currently below 20% of target.</div>`,
-  'Critical <20%'
+  }).join('')}</ul>`:`<div class="empty">No players are currently at or below 80% of target.</div>`,
+  '≤80% Achievement'
  ).replace('class="glass"','class="glass red-zone-card"');
 }
 function groupCount(rows,prop){const o={};rows.forEach(r=>{const k=clean(r[prop])||'Unknown';o[k]=(o[k]||0)+1});return o} function groupSum(rows,prop,val){const o={};rows.forEach(r=>{const k=clean(r[prop])||'Unknown';o[k]=(o[k]||0)+num(r[val])});return o} function topObj(rows,labelProp,valProp,n=10){return Object.fromEntries(rows.map(r=>[r[labelProp],num(r[valProp])]).filter(x=>x[0]).sort((a,b)=>b[1]-a[1]).slice(0,n))} function allTimeGrowthRows(){const by={};(state.data.growthRaw||[]).forEach(r=>{const kk=key(r._name); if(!kk||!r._week)return; by[kk]=by[kk]||{_name:r._name,_g:memberG(r._name),_firstWeek:r._week,_lastWeek:r._week,_first:r._might,_last:r._might,_growth:0}; if(String(r._week).localeCompare(String(by[kk]._firstWeek))<0){by[kk]._firstWeek=r._week;by[kk]._first=r._might} if(String(r._week).localeCompare(String(by[kk]._lastWeek))>0){by[kk]._lastWeek=r._week;by[kk]._last=r._might}}); return Object.values(by).map(x=>({...x,_growth:x._last-x._first})).filter(x=>x._firstWeek!==x._lastWeek)} function eventTrend(rows){const o={};rows.forEach(r=>{const k=r._event;if(k)o[k]=(o[k]||0)+1});return o} function growthTrend(){const o={};(state.data.growthRaw||[]).forEach(r=>{o[r._week]=(o[r._week]||0)+r._might});return o}
@@ -332,7 +332,7 @@ function renderEventModule(k,title,scoreLabel){
  underperformers=resultRows.filter(r=>r._target>0&&r._score<r._target)
    .sort((a,b)=>(a._score/a._target)-(b._score/b._target)||(b._target-b._score)-(a._target-a._score)||a._score-b._score);
  const redZone=underperformers
-   .filter(r=>r._target>0&&(r._score/r._target)<0.20)
+   .filter(r=>r._target>0&&(r._score/r._target)<=0.80)
    .sort((a,b)=>(a._score/a._target)-(b._score/b._target)||a._score-b._score);
 
  const resultsTable=tableCard(
