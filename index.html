@@ -369,7 +369,7 @@ function renderGrowth(){const weeks=growthWeeks(),latest=state.selected||(weeks.
   </div>
   <div class="dynamic-column">
     ${growthListCard('Members Left',left,'Left',r=>short(r._might),'Players present in the previous week but absent from the selected week.')}
-    ${growthMetricCard('Highest Improvers',[...positive].sort((a,b)=>b.growthPct-a.growthPct).slice(0,10),'Growth','Strongest week-on-week growth among comparable players.')}
+    ${growthMetricCard('Highest Improvers',[...positive].filter(r=>Number.isFinite(r._growthPct)).sort((a,b)=>b._growthPct-a._growthPct||num(b._change)-num(a._change)).slice(0,10),'Growth','Strongest week-on-week growth among comparable players.')}
   </div>
   <div class="dynamic-column">
     ${growthListCard('New Members',newMembers,'New',r=>short(r._might),'Players appearing for the first time in the selected reporting history.')}
