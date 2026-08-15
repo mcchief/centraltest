@@ -45,11 +45,9 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 .exempt-badge{display:inline-flex;align-items:center;justify-content:center;margin-left:7px;min-height:20px;padding:0 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.04em;color:#a8ecff;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.35);vertical-align:middle}
 .empty{padding:22px;border:1px dashed var(--line);border-radius:18px;color:#d7ebff;background:rgba(255,255,255,.035);line-height:1.6}
 .barwrap{display:flex;align-items:end;gap:10px;height:100%;padding:12px}.baritem{flex:1;min-width:36px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;height:100%}.bar{border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,rgba(56,189,248,.85),rgba(167,139,250,.65));border:1px solid rgba(255,255,255,.18)}.barlabel{font-size:10px;color:#d7ebff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tooltip{position:fixed;z-index:2000;display:none;pointer-events:none;max-width:260px;padding:10px 12px;border-radius:14px;border:1px solid rgba(148,197,253,.35);background:rgba(7,18,35,.96);box-shadow:0 18px 45px rgba(0,0,0,.45);color:#f7fbff;font-size:12px;line-height:1.45}.tooltip b{display:block;font-size:13px;margin-bottom:4px;color:#fff}.tooltip .muted{color:#b8d7f5}
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.78);backdrop-filter:blur(8px);z-index:999;padding:14px}.modal.show{display:flex}.modal-card{width:min(1320px,100%);max-height:94vh;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(14,27,50,.985),rgba(8,18,36,.985));box-shadow:0 26px 80px rgba(0,0,0,.5)}.modal-head{display:flex;justify-content:space-between;gap:12px;padding:18px 20px 12px;border-bottom:1px solid rgba(255,255,255,.08)}.modal-title{font-size:26px}.modal-body{padding:16px 20px 20px;overflow:auto;max-height:calc(94vh - 88px)}.close{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;font-size:22px;font-weight:900;cursor:pointer}.profile-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}.profile-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}.profile-tabs .tab{padding:8px 12px}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,8,18,.78);backdrop-filter:blur(8px);z-index:999;padding:14px}.modal.show{display:flex}.modal-card{width:min(1320px,100%);max-height:94vh;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(14,27,50,.985),rgba(8,18,36,.985));box-shadow:0 26px 80px rgba(0,0,0,.5)}.modal-head{display:flex;justify-content:space-between;gap:12px;padding:18px 20px 12px;border-bottom:1px solid rgba(255,255,255,.08)}.modal-title{font-size:26px}.modal-body{padding:16px 20px 20px;overflow:auto;max-height:calc(94vh - 88px)}.close{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;font-size:22px;font-weight:900;cursor:pointer}.profile-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}.profile-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}.profile-tabs .tab{padding:8px 12px}
 .performance-score{display:inline-flex;align-items:center;justify-content:center;min-width:64px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:900;border:1px solid currentColor;background:rgba(255,255,255,.06)}
 .performance-score.high{color:#9ff0c7}.performance-score.mid{color:#ffe68a}.performance-score.low{color:#ffb6c0}.performance-score.limited{color:#cbd5e1}
-.profile-grid .performance-score{white-space:normal;text-align:center;line-height:1.2;min-height:34px}
-.profile-grid .kpi .value:has(.performance-score){font-size:14px;letter-spacing:0}
 .matrix-cell{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:900}
 .matrix-cell.met{color:#9ff0c7;background:rgba(56,217,150,.13)}.matrix-cell.fail{color:#ffb6c0;background:rgba(255,107,125,.13)}.matrix-cell.na{color:#cbd5e1;background:rgba(148,163,184,.12)}
 @media(max-width:1350px){.top{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-cards{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(4,1fr)}.intel-grid,.score-intel-grid,.growth-intel-grid,.g-roster-grid,.dynamic-pack,.dynamic-pack.two-col,.vault-menu{grid-template-columns:1fr}.profile-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{width:min(100% - 10px,1780px)}.hero-cards,.kpis,.profile-grid{grid-template-columns:1fr}.searchbox{grid-template-columns:1fr}h1{font-size:34px}table{min-width:860px}}
@@ -120,77 +118,7 @@ function rowsToObjects(matrix,name=''){
 function normalizeCell(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);let s=clean(v);let m=s.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);if(m){let d=new Date(+m[1],+m[2],+m[3]);return d.toISOString().slice(0,10)}return s}
 function sheetMeta(url){const gid=(url.match(/[?&]gid=(\d+)/)||[])[1]||'0';const pub=(url.match(/\/d\/e\/([^/]+)\//)||[])[1];return{pub,gid}}
 function loadGvizMatrix(name,url){return new Promise(resolve=>{const m=sheetMeta(url);if(!m.pub)return resolve([]);const cb='__woa_live_'+name.replace(/\W/g,'_')+'_'+Date.now();let done=false,script=null;const finish=(rows)=>{if(done)return;done=true;try{delete window[cb]}catch(e){};if(script&&script.parentNode)script.parentNode.removeChild(script);resolve(rows||[])};window[cb]=(resp)=>{try{const matrix=(resp.table.rows||[]).map(r=>(r.c||[]).map(c=>c?(c.f??c.v??''):''));finish(rowsToObjects(matrix,name))}catch(e){console.warn('GViz parse failed',name,e);finish([])}};script=document.createElement('script');script.onerror=()=>finish([]);script.src=`https://docs.google.com/spreadsheets/d/e/${m.pub}/gviz/tq?gid=${m.gid}&headers=0&tqx=out:json;responseHandler:${cb}`;document.body.appendChild(script);setTimeout(()=>finish([]),15000)})}
-async function loadSheet(name,url){
- LIVE_STATUS[name]={status:'Loading',rows:0,error:'',source:'',attempts:0};
-
- let sawConnectionFailure=false;
- let lastError='';
- let sawReachableResponse=false;
-
- // Stage 1: published CSV, with one retry.
- for(let attempt=1;attempt<=2;attempt++){
-  LIVE_STATUS[name].attempts++;
-  try{
-   const ctrl=new AbortController();
-   const t=setTimeout(()=>ctrl.abort(),10000);
-   const sep=url.includes('?')?'&':'?';
-   const res=await fetch(url+sep+'cacheBust='+Date.now()+'_'+attempt,{cache:'no-store',signal:ctrl.signal});
-   clearTimeout(t);
-
-   if(!res.ok){
-    sawConnectionFailure=true;
-    lastError='CSV HTTP '+res.status;
-   }else{
-    sawReachableResponse=true;
-    const txt=await res.text();
-    if(/^\s*</.test(txt)){
-     lastError='CSV returned HTML instead of data';
-    }else{
-     const rows=rowsToObjects(parseCSVMatrix(txt),name);
-     if(rows.length){
-      LIVE_STATUS[name]={status:'Live',rows:rows.length,error:'',source:'CSV',attempts:LIVE_STATUS[name].attempts};
-      return rows;
-     }
-     lastError='CSV connected but returned no usable rows';
-    }
-   }
-  }catch(e){
-   sawConnectionFailure=true;
-   lastError=e&&e.name==='AbortError'?'CSV request timed out':(e?.message||'CSV request failed');
-  }
-
-  if(attempt<2)await new Promise(r=>setTimeout(r,350));
- }
-
- // Stage 2: GViz fallback, also retried once.
- for(let attempt=1;attempt<=2;attempt++){
-  LIVE_STATUS[name].attempts++;
-  try{
-   const rows=await loadGvizMatrix(name,url);
-   if(rows.length){
-    LIVE_STATUS[name]={status:'Live',rows:rows.length,error:'',source:'GViz',attempts:LIVE_STATUS[name].attempts};
-    return rows;
-   }
-   sawReachableResponse=true;
-   lastError='GViz returned no usable rows';
-  }catch(e){
-   sawConnectionFailure=true;
-   lastError=e?.message||'GViz request failed';
-  }
-
-  if(attempt<2)await new Promise(r=>setTimeout(r,350));
- }
-
- // Distinguish connectivity failure from an empty/invalid data condition.
- LIVE_STATUS[name]={
-  status:sawConnectionFailure&&!sawReachableResponse?'Connection Failed':'Empty/Invalid',
-  rows:0,
-  error:lastError||'No usable rows returned',
-  source:'',
-  attempts:LIVE_STATUS[name].attempts
- };
- return [];
-}
+async function loadSheet(name,url){LIVE_STATUS[name]={status:'Loading',rows:0,error:''};try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),10000);const res=await fetch(url+'&cacheBust='+Date.now(),{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(res.ok){const txt=await res.text();if(!/^\s*</.test(txt)){const rows=rowsToObjects(parseCSVMatrix(txt),name);if(rows.length){LIVE_STATUS[name]={status:'Loaded',rows:rows.length,error:''};return rows}}}}catch(e){LIVE_STATUS[name]={status:'CSV failed',rows:0,error:e.message}}const rows=await loadGvizMatrix(name,url);LIVE_STATUS[name]=rows.length?{status:'Loaded',rows:rows.length,error:''}:{status:'Empty/Failed',rows:0,error:'No usable rows returned'};return rows}
 function mapMember(r){return{_id:field(r,['Player ID','ID']),_name:field(r,['Official Player Name','Player Name','Name','Player']),_g:field(r,['Current G-Level','G-Level','G Level']),_vault:num(field(r,['Current Vault Level','Vault Level'])),_might:num(field(r,['Current Might','Might'])),_status:field(r,['Current Status','Status'])||'Active',_join:field(r,['Join Date','Date Joined']),_left:field(r,['Date Left','Left Date'])}}
 function mapEventRow(r){return{_eventId:field(r,['Event ID','EventID']),_event:field(r,['Event Date','Date','Week']),_available:num(field(r,['Available Members','Eligible Members'])),_rank:num(field(r,['Rank'])),_name:field(r,['Player Name','Official Player Name','Name','Player']),_id:field(r,['Player ID','ID']),_g:field(r,['G-Level','G Level','Current G-Level']),_vault:num(field(r,['Vault Level','Current Vault Level'])),_might:num(field(r,['Current Might','Might'])),_target:num(field(r,['Target','Required','Minimum'])),_score:num(field(r,['Result / Score','Score','Points','Essence','Result','Value'])),_status:field(r,['Result Status','Status','Current Status']),_buildTime:field(r,['Local Build Time','Build Time']),_resetOffset:field(r,['Reset Offset']),_utcOffset:field(r,['UTC Offset']),_chests:num(field(r,['Chests','Chest Count']))}}
 function mapEventSetup(r){return{_id:field(r,['Event ID','EventID']),_name:field(r,['Event Name','Name']),_type:field(r,['Event Type','Type']),_date:field(r,['Event Date','Date']),_target:num(field(r,['Target','Default Target'])),_available:num(field(r,['Available Members','Eligible Members']))}}
@@ -198,7 +126,7 @@ function normalizeWeek(v){v=clean(v);if(!v)return'';let d=parseAnyDate(v);if(d&&
 function mapGrowth(r){return{_name:field(r,['Player Name','Official Player Name','Name','Player']),_week:normalizeWeek(field(r,['Week','Week Start','Event Date','Date'])),_might:num(field(r,['Current Might','Might','Total Might'])),_g:field(r,['G-Level','G Level','Current G-Level']),_hero:num(field(r,['Hero Level','Hero','Current Hero Level'])),_duplicate:field(r,['Duplicate Check','Duplicate','Duplicate Status'])}}
 function mapStatusHistory(r){const ev=field(r,['Event Date','Date','Week']); return{_name:field(r,['Player Name','Official Player Name','Name','Player']),_event:ev,_eventId:field(r,['Event ID','EventID']),_eventName:field(r,['Event Name','Name','Event']),_g:field(r,['G-Level','G Level','Current G-Level']),_target:num(field(r,['Target','Required','Minimum'])),_score:num(field(r,['Result / Score','Score','Points','Essence','Result','Value'])),_status:field(r,['Status','Current Status','Result Status'])}}
 function mapEventExemption(r){return{_eventId:field(r,['Event ID','EventID','Event Id']),_event:field(r,['Event Date','Date','Week']),_eventName:field(r,['Event Name','Name','Event','Event Type']),_id:field(r,['Player ID','ID','Player Id']),_name:field(r,['Player Name','Official Player Name','Name','Player']),_reason:field(r,['Reason','Exemption Reason','Notes','Comment']),_fromDate:field(r,['From Date','Start Date','Date From','Exemption From']),_toDate:field(r,['To Date','End Date','Date To','Exemption To']),_status:field(r,['Status','Exemption Status','Current Status'])||'Active'}}
-async function initLive(){try{document.getElementById('searchMsg').textContent='Connecting to the live WoA intelligence feed...';document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Starting Live Intelligence</h2><p class="sub">Preparing current WoA intelligence.</p></section>';const raw={};await Promise.all(Object.entries(CONFIG).map(async([k,u])=>{raw[k]=await loadSheet(k,u)}));let liveGrowth=(raw.growth||[]);if(!liveGrowth.length&&Array.isArray(GROWTH_FALLBACK)&&GROWTH_FALLBACK.length){liveGrowth=GROWTH_FALLBACK;LIVE_STATUS.growth={status:'Fallback Active',rows:liveGrowth.length,error:'Live Growth source unavailable; using embedded workbook snapshot.',source:'Workbook Fallback',attempts:LIVE_STATUS.growth?.attempts||0}}state.data={settings:raw.settings||[],members:(raw.members||[]).map(mapMember).filter(r=>r._name),eventSetup:(raw.eventSetup||[]).map(mapEventSetup).filter(r=>r._id||r._name),growthRaw:liveGrowth.map(mapGrowth).filter(r=>r._name&&r._week&&r._might>0),tinman:(raw.tinman||[]).map(mapEventRow).filter(r=>r._name),darkOmens:(raw.darkOmens||[]).map(mapEventRow).filter(r=>r._name),trials:(raw.trials||[]).map(mapEventRow).filter(r=>r._name),ragnarok:(raw.ragnarok||[]).map(mapEventRow).filter(r=>r._name),chestpoints:(raw.chestpoints||[]).map(mapEventRow).filter(r=>r._name),vaults:(raw.vaults||[]).map(mapEventRow).filter(r=>r._name),playerStatusHistory:(raw.playerStatusHistory||[]).map(mapStatusHistory).filter(r=>r._name),eventExemptions:(raw.eventExemptions||[]).map(mapEventExemption).filter(r=>(r._id||r._name)&&r._reason)};setupControls();renderAll();enableAutomaticLayout();updateHealthWarnings();document.getElementById('searchMsg').textContent=Object.values(LIVE_STATUS).some(v=>v&&v.status==='Fallback Active')?'Intelligence loaded. Some data is using an approved fallback snapshot.':'Live intelligence synchronized. Rankings and insights are current.'}catch(e){document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Startup Error</h2><p class="sub">'+esc(e.message)+'</p></section>';console.error(e)}}
+async function initLive(){try{document.getElementById('searchMsg').textContent='Connecting to the live WoA intelligence feed...';document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Starting Live Intelligence</h2><p class="sub">Preparing current WoA intelligence.</p></section>';const raw={};await Promise.all(Object.entries(CONFIG).map(async([k,u])=>{raw[k]=await loadSheet(k,u)}));let liveGrowth=(raw.growth||[]);if(!liveGrowth.length&&Array.isArray(GROWTH_FALLBACK)&&GROWTH_FALLBACK.length){liveGrowth=GROWTH_FALLBACK;LIVE_STATUS.growth={status:'Loaded from workbook fallback',rows:liveGrowth.length,error:'Live Growth sheet returned no rows; using embedded workbook snapshot.'}}state.data={settings:raw.settings||[],members:(raw.members||[]).map(mapMember).filter(r=>r._name),eventSetup:(raw.eventSetup||[]).map(mapEventSetup).filter(r=>r._id||r._name),growthRaw:liveGrowth.map(mapGrowth).filter(r=>r._name&&r._week&&r._might>0),tinman:(raw.tinman||[]).map(mapEventRow).filter(r=>r._name),darkOmens:(raw.darkOmens||[]).map(mapEventRow).filter(r=>r._name),trials:(raw.trials||[]).map(mapEventRow).filter(r=>r._name),ragnarok:(raw.ragnarok||[]).map(mapEventRow).filter(r=>r._name),chestpoints:(raw.chestpoints||[]).map(mapEventRow).filter(r=>r._name),vaults:(raw.vaults||[]).map(mapEventRow).filter(r=>r._name),playerStatusHistory:(raw.playerStatusHistory||[]).map(mapStatusHistory).filter(r=>r._name),eventExemptions:(raw.eventExemptions||[]).map(mapEventExemption).filter(r=>(r._id||r._name)&&r._reason)};setupControls();renderAll();enableAutomaticLayout();updateHealthWarnings();document.getElementById('searchMsg').textContent='Live intelligence synchronized. Rankings and insights are current.'}catch(e){document.getElementById('app').innerHTML='<section class="content-head glass"><h2>Startup Error</h2><p class="sub">'+esc(e.message)+'</p></section>';console.error(e)}}
 const MODULES=[['overview','🏠 Overview'],['growth','📈 Growth'],['consolidated','🏆 Consolidated Performance'],['tinman','⚔ Tinman'],['darkOmens','🌑 Dark Omens'],['trials','🏛 Trials'],['ragnarok','🪓 Ragnarök'],['chestpoints','🎯 Chest Points'],['vaults','🏰 Vaults'],['exemptions','🛡 Exemptions']];
 const state={module:'overview',selected:'',g:'',profileTab:'summary',player:'',data:{}};
 const $=id=>document.getElementById(id); const clean=s=>(s??'').toString().trim(); const key=s=>clean(s).toUpperCase().replace(/\s+/g,''); const num=v=>{let n=parseFloat(clean(v).replace(/,/g,''));return isNaN(n)?0:n}; const fmt=n=>Number(num(n)||0).toLocaleString(); const pct=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'0%'; const short=n=>{n=num(n); if(Math.abs(n)>=1e9)return(n/1e9).toFixed(2)+'B'; if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M'; if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+'K'; return fmt(n)}; const esc=s=>clean(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); const escAttr=s=>esc(s).replace(/'/g,'&#39;');
@@ -740,6 +668,11 @@ function updateHealthWarnings(){
  const el=$('warningBanner');
  if(!el)return;
 
+ // Production health policy:
+ // - Any "Loaded..." status is healthy, including approved workbook fallback.
+ // - Non-critical/optional sheets do not trigger a public warning.
+ // - Technical source diagnostics remain in the browser console.
+ const isHealthy=v=>!!(v&&/^Loaded\b/i.test(clean(v.status))&&num(v.rows)>0);
  const critical={
   members:'Player roster',
   eventSetup:'Event setup',
@@ -752,28 +685,22 @@ function updateHealthWarnings(){
   vaults:'Vaults'
  };
 
- const isLive=v=>!!(v&&v.status==='Live'&&num(v.rows)>0);
- const isFallback=v=>!!(v&&v.status==='Fallback Active'&&num(v.rows)>0);
+ const technicalFailures=Object.entries(LIVE_STATUS)
+  .filter(([k,v])=>v&&!isHealthy(v));
 
- // Keep complete diagnostics technical and out of the normal user-facing view.
- const diagnostics=Object.entries(LIVE_STATUS).map(([source,info])=>({
-  source,
-  state:isLive(info)?'LIVE':isFallback(info)?'FALLBACK':info?.status||'UNKNOWN',
-  rows:num(info?.rows),
-  via:info?.source||'',
-  attempts:num(info?.attempts),
-  error:info?.error||''
- }));
- console.info('WoA live data health:',diagnostics);
+ if(technicalFailures.length){
+  console.warn('WoA live data diagnostics:',technicalFailures.map(([source,info])=>({
+   source,
+   status:info?.status||'Unknown',
+   rows:num(info?.rows),
+   error:info?.error||''
+  })));
+ }
 
- // Public warning only when a critical module has neither live data nor a valid fallback.
- const unavailable=Object.entries(critical)
-  .filter(([source])=>{
-   const info=LIVE_STATUS[source];
-   return info && !isLive(info) && !isFallback(info);
-  });
+ const failedCritical=Object.entries(critical)
+  .filter(([source])=>LIVE_STATUS[source]&&!isHealthy(LIVE_STATUS[source]));
 
- if(!unavailable.length){
+ if(!failedCritical.length){
   el.classList.remove('show');
   el.innerHTML='';
   return;
@@ -781,8 +708,9 @@ function updateHealthWarnings(){
 
  el.classList.add('show');
  el.innerHTML='⚠ Live data is temporarily unavailable for: '+
-  unavailable.map(([,label])=>esc(label)).join(', ')+
-  '. Other available intelligence remains accessible.';
+  failedCritical.map(([,label])=>esc(label)).join(', ')+
+  '. Available intelligence remains accessible.<br>'+
+  '<span style="display:inline-block;margin-top:4px;font-weight:800">↻ Please refresh your browser to retry loading the latest live data.</span>';
 }
 
 
@@ -821,9 +749,9 @@ function bestPlayerRow(rows,member,dataset){
  if(dataset==='vaults')return matches.sort((a,b)=>num(b._vault)-num(a._vault))[0];
  return matches.sort((a,b)=>num(b._score)-num(a._score))[0];
 }
-function consolidatedPerformanceRows(ignoreGFilter=false){
+function consolidatedPerformanceRows(){
  let roster=activeRosterMembers().map(m=>({...m,_g:m._g||memberG(m._name)}));
- if(state.g&&!ignoreGFilter)roster=roster.filter(m=>m._g===state.g);
+ if(state.g)roster=roster.filter(m=>m._g===state.g);
 
  const result=new Map(roster.map(m=>[key(m._id||m._name),{
   _id:m._id,_name:m._name,_g:m._g,_status:m._status,
@@ -1375,55 +1303,8 @@ function enableAutomaticLayout(){
 
 function renderDataHealth(){const rows=Object.entries(state.data).filter(([k,v])=>Array.isArray(v)).map(([k,v])=>({_sheet:k,_count:v.length,_status:v.length?'Loaded':'Empty'}));$('app').innerHTML=`<section class="content-head glass"><h2>Data Health</h2><p class="sub">Platform data availability and record status.</p></section><section class="kpis">${kpiHtml([['Members',state.data.members.length],['Active',activeMembers().length],['Event Setup',state.data.eventSetup.length],['Growth Rows',state.data.growthRaw.length],['Event Rows',allEventRows().length],['Chest Points',state.data.chestpoints.length],['Vault Rows',state.data.vaults.length],['History Rows',state.data.playerStatusHistory.length],['Exemptions',state.data.eventExemptions.length]])}</section>${tableCard('Loaded Tables',rows,['Dataset','Rows','Status'],r=>[esc(r._sheet),fmt(r._count),statusBadge(r._status)])}`}
 function renderAll(){renderShell();renderEventSelector();renderHero();const map={overview:renderOverview,growth:renderGrowth,consolidated:renderConsolidatedPerformance,tinman:()=>renderEventModule('tinman','Tinman','Points'),darkOmens:()=>renderEventModule('darkOmens','Dark Omens','Essence'),trials:()=>renderEventModule('trials','Trials of Olympus','Points'),ragnarok:renderRagnarok,chestpoints:()=>renderEventModule('chestpoints','Chest Points','Points'),vaults:renderVaults,exemptions:renderExemptions};(map[state.module]||renderOverview)();scheduleDynamicLayout(document)}
-function latestPlayerGrowthRecord(name){
- const kk=key(name);
- const rows=(state.data.growthRaw||[])
-  .filter(r=>key(r._name)===kk&&r._week)
-  .sort((a,b)=>String(b._week).localeCompare(String(a._week)));
- return rows[0]||null;
-}
-function latestPlayerHeroLevel(name){
- const kk=key(name);
- const rows=(state.data.growthRaw||[])
-  .filter(r=>key(r._name)===kk&&r._week&&String(r._week).localeCompare('2026-08-01')>=0&&num(r._hero)>0)
-  .sort((a,b)=>String(b._week).localeCompare(String(a._week)));
- return rows.length?fmt(rows[0]._hero):'';
-}
-function doSearch(){const q=$('search').value.trim(),m=memberByName(q);if(m)openProfile(m._name);else $('searchMsg').textContent='Player not found.'} function openProfile(name){state.player=name;state.profileTab='summary';renderProfile();$('modal').classList.add('show')} function profileClassificationBadge(classification){
- const cls=classification==='Consistent Performer'?'high':
-  classification==='Consistent Underperformer'?'low':
-  classification==='Mixed Performance'?'mid':'limited';
- return `<span class="performance-score ${cls}">${esc(classification||'Limited Data')}</span>`;
-}
-function renderProfile(){
- const m=memberByName(state.player)||{_name:state.player};
- const latestGrowth=latestPlayerGrowthRecord(m._name);
- const profileG=(latestGrowth&&clean(latestGrowth._g))?latestGrowth._g:(m._g||memberG(m._name)||'-');
- const profileMight=(latestGrowth&&num(latestGrowth._might)>0)?latestGrowth._might:num(m._might);
- const totalGrowth=getPlayerGrowthTotal(m._name);
-
- // Single source of truth: this is the player's row from Consolidated Performance.
- const consolidatedRow=consolidatedPerformanceRows(true).find(r=>
-  (clean(m._id)&&clean(r._id)&&key(r._id)===key(m._id))||key(r._name)===key(m._name)
- );
- const classification=consolidatedRow?consolidatedRow._classification:'Limited Data';
- const classificationNote=consolidatedRow
-  ?`${consolidatedRow._rate.toFixed(1)}% success · ${consolidatedRow._eligible} eligible records · ${consolidatedRow._coverage} event types`
-  :'Insufficient consolidated performance data';
-
- $('modalTitle').textContent=m._name;
- $('profileGrid').innerHTML=kpiHtml([
-  ['G-Level',gBadge(profileG)],
-  ['Might',profileMight>0?short(profileMight):'—'],
-  ['Hero Level',latestPlayerHeroLevel(m._name)||'—'],
-  ['Status',m._status||'-'],
-  ['Growth',totalGrowth===null?'—':short(totalGrowth)],
-  ['Classification',profileClassificationBadge(classification),classificationNote]
- ]);
- const tabs=['summary','growth','tinman','darkOmens','trials','ragnarok','chestpoints','vaults','exemptions'];
- $('profileTabs').innerHTML=tabs.map(t=>`<button class="tab ${t===state.profileTab?'active':''}" data-profile-tab="${t}" onclick="setProfileTab('${t}')">${label(t)}</button>`).join('');
- renderProfileContent();
-} function setProfileTab(t){state.profileTab=t;document.querySelectorAll('#profileTabs .tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.profileTab===t));renderProfileContent()} function label(k){return {darkOmens:'Dark Omens',ragnarok:'Ragnarök',chestpoints:'Chest Points',vaults:'Vaults',exemptions:'Exemptions'}[k]||k[0].toUpperCase()+k.slice(1)} 
+function latestPlayerHeroLevel(name){const kk=key(name);const rows=(state.data.growthRaw||[]).filter(r=>key(r._name)===kk&&r._week&&String(r._week).localeCompare('2026-08-01')>=0&&num(r._hero)>0).sort((a,b)=>String(b._week).localeCompare(String(a._week)));return rows.length?fmt(rows[0]._hero):''}
+function doSearch(){const q=$('search').value.trim(),m=memberByName(q);if(m)openProfile(m._name);else $('searchMsg').textContent='Player not found.'} function openProfile(name){state.player=name;state.profileTab='summary';renderProfile();$('modal').classList.add('show')} function renderProfile(){const m=memberByName(state.player)||{_name:state.player};$('modalTitle').textContent=m._name;$('profileGrid').innerHTML=kpiHtml([['G-Level',gBadge(m._g||memberG(m._name)||'-')],['Might',short(m._might)],['Hero Level',latestPlayerHeroLevel(m._name)],['Status',m._status||'-'],['Growth',getPlayerGrowthTotal(m._name)===null?'—':short(getPlayerGrowthTotal(m._name))]]);const tabs=['summary','growth','tinman','darkOmens','trials','ragnarok','chestpoints','vaults','exemptions'];$('profileTabs').innerHTML=tabs.map(t=>`<button class="tab ${t===state.profileTab?'active':''}" data-profile-tab="${t}" onclick="setProfileTab('${t}')">${label(t)}</button>`).join('');renderProfileContent()} function setProfileTab(t){state.profileTab=t;document.querySelectorAll('#profileTabs .tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.profileTab===t));renderProfileContent()} function label(k){return {darkOmens:'Dark Omens',ragnarok:'Ragnarök',chestpoints:'Chest Points',vaults:'Vaults',exemptions:'Exemptions'}[k]||k[0].toUpperCase()+k.slice(1)} 
 function profileChart(title,id,sub='Player performance history.'){return `<section class="glass"><div class="panel-head"><div><h3>${esc(title)}</h3><p class="sub">${esc(sub)}</p></div></div><div class="panel-body"><div class="chartbox" id="${id}"></div></div></section>`}
 function rowsForPlayer(dataset,name){const kk=key(name);return (state.data[dataset]||[]).filter(r=>key(r._name)===kk&&rowHasParticipation(dataset,r)).sort((a,b)=>String(a._event||a._week).localeCompare(String(b._event||b._week)))}
 function newestFirst(rows,dateField='_event'){return [...(rows||[])].sort((a,b)=>String(b?.[dateField]||'').localeCompare(String(a?.[dateField]||'')))}
