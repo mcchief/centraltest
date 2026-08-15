@@ -664,7 +664,53 @@ function eligibleMembersForDate(eventDate){
  if(!eventDate)return activeRosterMembers();
  return state.data.members.filter(m=>memberIsActiveForDate(m._name,eventDate));
 }
-function updateHealthWarnings(){const failed=Object.entries(LIVE_STATUS).filter(([k,v])=>v&&v.status!=='Loaded');const el=$('warningBanner');if(!el)return;if(!failed.length){el.classList.remove('show');el.innerHTML='';return}el.classList.add('show');el.innerHTML='⚠ Some live Google Sheets did not return usable data: '+failed.map(([k])=>esc(k)).join(', ')+'. Other modules continue to work.'}
+function updateHealthWarnings(){
+ const el=$('warningBanner');
+ if(!el)return;
+
+ // Production health policy:
+ // - Any "Loaded..." status is healthy, including approved workbook fallback.
+ // - Non-critical/optional sheets do not trigger a public warning.
+ // - Technical source diagnostics remain in the browser console.
+ const isHealthy=v=>!!(v&&/^Loaded\b/i.test(clean(v.status))&&num(v.rows)>0);
+ const critical={
+  members:'Player roster',
+  eventSetup:'Event setup',
+  growth:'Growth',
+  tinman:'Tinman',
+  darkOmens:'Dark Omens',
+  trials:'Trials of Olympus',
+  ragnarok:'Ragnarök',
+  chestpoints:'Chest Points',
+  vaults:'Vaults'
+ };
+
+ const technicalFailures=Object.entries(LIVE_STATUS)
+  .filter(([k,v])=>v&&!isHealthy(v));
+
+ if(technicalFailures.length){
+  console.warn('WoA live data diagnostics:',technicalFailures.map(([source,info])=>({
+   source,
+   status:info?.status||'Unknown',
+   rows:num(info?.rows),
+   error:info?.error||''
+  })));
+ }
+
+ const failedCritical=Object.entries(critical)
+  .filter(([source])=>LIVE_STATUS[source]&&!isHealthy(LIVE_STATUS[source]));
+
+ if(!failedCritical.length){
+  el.classList.remove('show');
+  el.innerHTML='';
+  return;
+ }
+
+ el.classList.add('show');
+ el.innerHTML='⚠ Live data is temporarily unavailable for: '+
+  failedCritical.map(([,label])=>esc(label)).join(', ')+
+  '. Available intelligence remains accessible.';
+}
 
 
 const CONSOLIDATED_EVENTS=[
