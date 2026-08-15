@@ -1373,8 +1373,38 @@ function enableAutomaticLayout(){
 
 function renderDataHealth(){const rows=Object.entries(state.data).filter(([k,v])=>Array.isArray(v)).map(([k,v])=>({_sheet:k,_count:v.length,_status:v.length?'Loaded':'Empty'}));$('app').innerHTML=`<section class="content-head glass"><h2>Data Health</h2><p class="sub">Platform data availability and record status.</p></section><section class="kpis">${kpiHtml([['Members',state.data.members.length],['Active',activeMembers().length],['Event Setup',state.data.eventSetup.length],['Growth Rows',state.data.growthRaw.length],['Event Rows',allEventRows().length],['Chest Points',state.data.chestpoints.length],['Vault Rows',state.data.vaults.length],['History Rows',state.data.playerStatusHistory.length],['Exemptions',state.data.eventExemptions.length]])}</section>${tableCard('Loaded Tables',rows,['Dataset','Rows','Status'],r=>[esc(r._sheet),fmt(r._count),statusBadge(r._status)])}`}
 function renderAll(){renderShell();renderEventSelector();renderHero();const map={overview:renderOverview,growth:renderGrowth,consolidated:renderConsolidatedPerformance,tinman:()=>renderEventModule('tinman','Tinman','Points'),darkOmens:()=>renderEventModule('darkOmens','Dark Omens','Essence'),trials:()=>renderEventModule('trials','Trials of Olympus','Points'),ragnarok:renderRagnarok,chestpoints:()=>renderEventModule('chestpoints','Chest Points','Points'),vaults:renderVaults,exemptions:renderExemptions};(map[state.module]||renderOverview)();scheduleDynamicLayout(document)}
-function latestPlayerHeroLevel(name){const kk=key(name);const rows=(state.data.growthRaw||[]).filter(r=>key(r._name)===kk&&r._week&&String(r._week).localeCompare('2026-08-01')>=0&&num(r._hero)>0).sort((a,b)=>String(b._week).localeCompare(String(a._week)));return rows.length?fmt(rows[0]._hero):''}
-function doSearch(){const q=$('search').value.trim(),m=memberByName(q);if(m)openProfile(m._name);else $('searchMsg').textContent='Player not found.'} function openProfile(name){state.player=name;state.profileTab='summary';renderProfile();$('modal').classList.add('show')} function renderProfile(){const m=memberByName(state.player)||{_name:state.player};$('modalTitle').textContent=m._name;$('profileGrid').innerHTML=kpiHtml([['G-Level',gBadge(m._g||memberG(m._name)||'-')],['Might',short(m._might)],['Hero Level',latestPlayerHeroLevel(m._name)],['Status',m._status||'-'],['Growth',getPlayerGrowthTotal(m._name)===null?'—':short(getPlayerGrowthTotal(m._name))]]);const tabs=['summary','growth','tinman','darkOmens','trials','ragnarok','chestpoints','vaults','exemptions'];$('profileTabs').innerHTML=tabs.map(t=>`<button class="tab ${t===state.profileTab?'active':''}" data-profile-tab="${t}" onclick="setProfileTab('${t}')">${label(t)}</button>`).join('');renderProfileContent()} function setProfileTab(t){state.profileTab=t;document.querySelectorAll('#profileTabs .tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.profileTab===t));renderProfileContent()} function label(k){return {darkOmens:'Dark Omens',ragnarok:'Ragnarök',chestpoints:'Chest Points',vaults:'Vaults',exemptions:'Exemptions'}[k]||k[0].toUpperCase()+k.slice(1)} 
+function latestPlayerGrowthRecord(name){
+ const kk=key(name);
+ const rows=(state.data.growthRaw||[])
+  .filter(r=>key(r._name)===kk&&r._week)
+  .sort((a,b)=>String(b._week).localeCompare(String(a._week)));
+ return rows[0]||null;
+}
+function latestPlayerHeroLevel(name){
+ const kk=key(name);
+ const rows=(state.data.growthRaw||[])
+  .filter(r=>key(r._name)===kk&&r._week&&String(r._week).localeCompare('2026-08-01')>=0&&num(r._hero)>0)
+  .sort((a,b)=>String(b._week).localeCompare(String(a._week)));
+ return rows.length?fmt(rows[0]._hero):'';
+}
+function doSearch(){const q=$('search').value.trim(),m=memberByName(q);if(m)openProfile(m._name);else $('searchMsg').textContent='Player not found.'} function openProfile(name){state.player=name;state.profileTab='summary';renderProfile();$('modal').classList.add('show')} function renderProfile(){
+ const m=memberByName(state.player)||{_name:state.player};
+ const latestGrowth=latestPlayerGrowthRecord(m._name);
+ const profileG=(latestGrowth&&clean(latestGrowth._g))?latestGrowth._g:(m._g||memberG(m._name)||'-');
+ const profileMight=(latestGrowth&&num(latestGrowth._might)>0)?latestGrowth._might:num(m._might);
+ const totalGrowth=getPlayerGrowthTotal(m._name);
+ $('modalTitle').textContent=m._name;
+ $('profileGrid').innerHTML=kpiHtml([
+  ['G-Level',gBadge(profileG)],
+  ['Might',profileMight>0?short(profileMight):'—'],
+  ['Hero Level',latestPlayerHeroLevel(m._name)||'—'],
+  ['Status',m._status||'-'],
+  ['Growth',totalGrowth===null?'—':short(totalGrowth)]
+ ]);
+ const tabs=['summary','growth','tinman','darkOmens','trials','ragnarok','chestpoints','vaults','exemptions'];
+ $('profileTabs').innerHTML=tabs.map(t=>`<button class="tab ${t===state.profileTab?'active':''}" data-profile-tab="${t}" onclick="setProfileTab('${t}')">${label(t)}</button>`).join('');
+ renderProfileContent();
+} function setProfileTab(t){state.profileTab=t;document.querySelectorAll('#profileTabs .tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.profileTab===t));renderProfileContent()} function label(k){return {darkOmens:'Dark Omens',ragnarok:'Ragnarök',chestpoints:'Chest Points',vaults:'Vaults',exemptions:'Exemptions'}[k]||k[0].toUpperCase()+k.slice(1)} 
 function profileChart(title,id,sub='Player performance history.'){return `<section class="glass"><div class="panel-head"><div><h3>${esc(title)}</h3><p class="sub">${esc(sub)}</p></div></div><div class="panel-body"><div class="chartbox" id="${id}"></div></div></section>`}
 function rowsForPlayer(dataset,name){const kk=key(name);return (state.data[dataset]||[]).filter(r=>key(r._name)===kk&&rowHasParticipation(dataset,r)).sort((a,b)=>String(a._event||a._week).localeCompare(String(b._event||b._week)))}
 function newestFirst(rows,dateField='_event'){return [...(rows||[])].sort((a,b)=>String(b?.[dateField]||'').localeCompare(String(a?.[dateField]||'')))}
