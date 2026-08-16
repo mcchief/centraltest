@@ -41,55 +41,21 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 </style></head><body>
 <div id="strictLoadingOverlay" class="strict-loading-overlay"><div id="strictLoadingCard" class="strict-loading-card">
 <div class="strict-spinner"></div><h2 class="strict-loading-title">Loading WoA Intelligence</h2>
-<p class="strict-loading-text">Please wait while all required live data is loaded and verified.</p>
+<p class="strict-loading-text">Please wait while the latest intelligence data is loaded.</p>
 <div id="strictLoadingStatus" class="strict-loading-status">Loading intelligence data…</div>
 <div id="strictLoadingModules" class="strict-loading-modules"></div>
 <button id="strictRetryBtn" class="strict-retry-btn" type="button">Retry Loading</button>
 </div></div>
-<div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Live Intelligence Platform V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Connecting to the live WoA intelligence feed...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Intelligence</div><h1>WoA Intelligence Platform</h1><p>Live monitoring of clan performance, participation and player development across every recorded event.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
+<div class="wrap"><section class="top glass"><div class="brand"><span class="dot"></span><span>WOA Live Intelligence Platform V9</span></div><div><label for="search">Player Search</label><div class="searchbox"><input class="input" id="search" list="suggestions" placeholder="Search player name..." autocomplete="off"><button class="btn" id="searchBtn">Search</button></div><datalist id="suggestions"></datalist><div class="msg" id="searchMsg">Preparing WoA intelligence...</div></div><div><label for="eventSelect">Event / Week</label><select class="select" id="eventSelect"></select></div><div><label for="gFilter">G-Level</label><select class="select" id="gFilter"><option value="">All G-Levels</option></select></div></section><div id="warningBanner" class="warn-banner"></div><section class="hero glass"><div><div class="brand"><span class="dot"></span> Live Intelligence</div><h1>WoA Intelligence Platform</h1><p>Live monitoring of clan performance, participation and player development across every recorded event.</p></div><div class="hero-cards" id="heroCards"></div></section><section class="glass"><div class="tabs" id="tabs"></div></section><main id="app"></main></div>
 <div id="chartTooltip" class="tooltip"></div>
 <div class="modal" id="modal"><div class="modal-card"><div class="modal-head"><div><h2 class="modal-title" id="modalTitle">Player Profile</h2><p class="sub" id="modalSub">Live player intelligence across all recorded events.</p></div><button class="close" id="closeModal">×</button></div><div class="modal-body"><div class="profile-grid" id="profileGrid"></div><div class="profile-tabs" id="profileTabs"></div><div id="profileContent"></div></div></div></div>
 <script>
 /* WoA Live Intelligence Platform */
-const CONFIG={
- members:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=2078620130&single=true&output=csv',
- eventSetup:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=363600942&single=true&output=csv',
- tinman:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=722048278&single=true&output=csv',
- vaults:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=897382777&single=true&output=csv',
- darkOmens:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=1991117283&single=true&output=csv',
- trials:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=23878375&single=true&output=csv',
- ragnarok:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=247579126&single=true&output=csv',
- chestpoints:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=1603255197&single=true&output=csv',
-eventExemptions:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=1405131366&single=true&output=csv', 
- growth:'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6W22ERb3UOEaYEoap6ykIoJXWfBOEfTLGh-mdJQ0uhfCYlrTj0MOKiN78rvs3avmT_IN7uTqVi2Iz/pub?gid=213323401&single=true&output=csv',
-};
 const LIVE_STATUS={};
-const STRICT_REQUIRED_SOURCES={
- members:'Player roster',
- eventSetup:'Event setup',
- growth:'Growth',
- tinman:'Tinman',
- darkOmens:'Dark Omens',
- trials:'Trials of Olympus',
- ragnarok:'Ragnarök',
- chestpoints:'Chest Points',
- vaults:'Vaults',
- eventExemptions:'Event Exemptions'
-};
-const STRICT_ALLOW_EMPTY=new Set(['eventExemptions']);
-const STRICT_RETRY_DELAYS=[2500,5000,8000],STRICT_MAX_ROUNDS=4,LOAD_CONCURRENCY=2;
+const REQUIRED_DATASETS=['members','eventSetup','growth','tinman','darkOmens','trials','ragnarok','chestpoints','vaults','eventExemptions'];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-function strictSourceHealthy(source,raw){
- const info=LIVE_STATUS[source];
- if(!info||info.status!=='Loaded')return false;
- if(source==='eventExemptions')return Array.isArray(raw?.[source]);
- return Array.isArray(raw?.[source])&&raw[source].length>0;
-}
-function strictMissingSources(raw){
- return Object.keys(STRICT_REQUIRED_SOURCES).filter(s=>!strictSourceHealthy(s,raw));
-}
-function setStrictLoading(message,missing=[],failed=false){
+function setStrictLoading(message,failed=false){
  const o=document.getElementById('strictLoadingOverlay'),
        c=document.getElementById('strictLoadingCard'),
        s=document.getElementById('strictLoadingStatus'),
@@ -102,135 +68,40 @@ function setStrictLoading(message,missing=[],failed=false){
 }
 function unlockStrictDashboard(){document.getElementById('strictLoadingOverlay')?.classList.add('hidden')}
 function blockStrictDashboard(){
- setStrictLoading('Failed to load all intelligence data. Please retry.',[],true);
- document.getElementById('searchMsg').textContent='Unable to load all intelligence data.';
+ setStrictLoading('Failed to load intelligence data. Please retry.',true);
+ const msg=document.getElementById('searchMsg');
+ if(msg)msg.textContent='Unable to load intelligence data.';
 }
-
-async function loadSourceBatch(names,raw){
- let cursor=0;
- const workers=Array.from({length:Math.min(LOAD_CONCURRENCY,names.length)},async()=>{
-  while(cursor<names.length){
-   const k=names[cursor++];
-   raw[k]=await loadSheet(k,CONFIG[k]);
-  }
- });
- await Promise.all(workers);
+function cachedPayloadValid(raw){
+ if(!raw||typeof raw!=='object')return false;
+ return REQUIRED_DATASETS.every(k=>Array.isArray(raw[k]));
 }
-function parseCSVMatrix(text){const rows=[];let row=[],cur='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cur+='"';i++}else if(c==='"'){q=!q}else if(c===','&&!q){row.push(cur);cur=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cur);if(row.some(x=>clean(x)!==''))rows.push(row);row=[];cur=''}else cur+=c}row.push(cur);if(row.some(x=>clean(x)!==''))rows.push(row);return rows}
-function canonicalHeader(s){return clean(s).toLowerCase().replace(/[^a-z0-9]+/g,' ')}
-function headerScore(row){const joined=row.map(canonicalHeader).join('|');const tokens=['player','player name','official player name','player id','event id','event date','current g level','g level','vault level','result score','score','points','target','rank','current status','current might','might','week'];return tokens.reduce((a,t)=>a+(joined.includes(t)?1:0),0)}
-
-function rowsToObjects(matrix,name=''){
- if(!matrix||!matrix.length)return[];
- if(name==='eventExemptions'){
-  let headerIndex=-1;
-  for(let i=0;i<Math.min(60,matrix.length);i++){
-   const can=matrix[i].map(canonicalHeader);
-   const hasPlayer=can.some(h=>['player name','official player name','player'].includes(h));
-   const hasIdentity=hasPlayer||can.includes('player id');
-   const hasExemptionField=can.some(h=>['reason','exemption reason','notes','comment','from date','start date','date from','exemption from','event id','event name'].includes(h));
-   if(hasIdentity&&hasExemptionField){headerIndex=i;break}
-  }
-  if(headerIndex<0)return[];
-  const headers=matrix[headerIndex].map(h=>clean(h)||'Column');
-  return matrix.slice(headerIndex+1)
-   .map(r=>Object.fromEntries(headers.map((h,i)=>[h,normalizeCell(r[i])])))
-   .filter(o=>{
-    const hasPlayer=clean(field(o,['Player Name','Official Player Name','Name','Player','Player ID','ID']))!=='';
-    const hasExemptionData=clean(field(o,['Reason','Exemption Reason','Notes','Comment','Event ID','EventID','Event Name','From Date','Start Date','Date From','Exemption From']))!=='';
-    return hasPlayer&&hasExemptionData;
-   });
- }
- let best=0,score=-1;
- for(let i=0;i<Math.min(30,matrix.length);i++){let can=matrix[i].map(canonicalHeader);let sc=headerScore(matrix[i]);if(name==='growth'&&can.includes('week')&&can.includes('player')&&can.includes('might'))sc+=100;if(sc>score){score=sc;best=i}}
- let headers=matrix[best].map(h=>clean(h)||'Column');
- if(name==='growth'){const can=headers.map(canonicalHeader);if(!(can.includes('week')&&can.includes('player')&&can.includes('might'))){headers=['Week','Player','Might','Duplicate Check'];best=matrix.findIndex(r=>canonicalHeader(r[0]).includes('week')&&canonicalHeader(r[1]).includes('player'));if(best<0)best=0}}
- return matrix.slice(best+1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,normalizeCell(r[i])]))).filter(o=>Object.values(o).some(v=>clean(v)!==''))
-}
-function normalizeCell(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);let s=clean(v);let m=s.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);if(m){let d=new Date(+m[1],+m[2],+m[3]);return d.toISOString().slice(0,10)}return s}
-function sheetMeta(url){const gid=(url.match(/[?&]gid=(\d+)/)||[])[1]||'0';const pub=(url.match(/\/d\/e\/([^/]+)\//)||[])[1];return{pub,gid}}
-function loadGvizMatrix(name,url){return new Promise(resolve=>{
- const m=sheetMeta(url);
- if(!m.pub)return resolve([]);
- const cb='__woa_live_'+name.replace(/\W/g,'_')+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
- let done=false,script=null,timer=null;
- const finish=rows=>{
-  if(done)return;
-  done=true;
-  if(timer)clearTimeout(timer);
-  try{delete window[cb]}catch(e){}
-  if(script&&script.parentNode)script.parentNode.removeChild(script);
-  resolve(rows||[]);
- };
- window[cb]=resp=>{
-  try{
-   const matrix=(resp?.table?.rows||[]).map(r=>(r.c||[]).map(c=>c?(c.f??c.v??''):''));
-   finish(rowsToObjects(matrix,name));
-  }catch(e){
-   console.warn('GViz parse failed',name,e);
-   finish([]);
-  }
- };
- script=document.createElement('script');
- script.onerror=()=>finish([]);
- script.src=`https://docs.google.com/spreadsheets/d/e/${m.pub}/gviz/tq?gid=${m.gid}&headers=0&tqx=out:json;responseHandler:${cb}&cacheBust=${Date.now()}`;
- document.body.appendChild(script);
- timer=setTimeout(()=>finish([]),15000);
-})}
-
-async function loadSheet(name,url){
- LIVE_STATUS[name]={status:'Loading',rows:0,error:'',source:'',attempts:0};
- let lastError='',sawReachable=false;
-
- // Proven path from the working production site: CSV first, with retry.
- for(let attempt=1;attempt<=2;attempt++){
-  LIVE_STATUS[name].attempts++;
+async function fetchCachedPayload(){
+ let lastError='';
+ for(let attempt=1;attempt<=4;attempt++){
   try{
    const ctrl=new AbortController();
-   const timer=setTimeout(()=>ctrl.abort(),15000);
-   const sep=url.includes('?')?'&':'?';
-   const res=await fetch(url+sep+'cacheBust='+Date.now()+'_'+attempt,{cache:'no-store',signal:ctrl.signal,redirect:'follow'});
+   const timer=setTimeout(()=>ctrl.abort(),12000);
+   const res=await fetch('./data.json?v='+Date.now(),{
+    cache:'no-store',
+    signal:ctrl.signal
+   });
    clearTimeout(timer);
-
-   if(res.ok){
-    sawReachable=true;
-    const txt=await res.text();
-    if(!/^\s*</.test(txt)){
-     const rows=rowsToObjects(parseCSVMatrix(txt),name);
-     // Empty exemptions is valid; other required sources must return rows.
-     if(rows.length||name==='eventExemptions'){
-      LIVE_STATUS[name]={status:'Loaded',rows:rows.length,error:'',source:'CSV',attempts:LIVE_STATUS[name].attempts};
-      return rows;
-     }
-     lastError='CSV returned no usable rows';
-    }else lastError='CSV returned HTML';
-   }else lastError='CSV HTTP '+res.status;
+   if(!res.ok)throw new Error('HTTP '+res.status);
+   const raw=await res.json();
+   if(!cachedPayloadValid(raw))throw new Error('Data package validation failed');
+   return raw;
   }catch(e){
-   lastError=e?.name==='AbortError'?'CSV request timed out':(e?.message||'CSV request failed');
-  }
-  if(attempt<2)await sleep(500);
- }
-
- // If browser fetch/redirect fails, use JSONP/GViz exactly as the working site does.
- for(let attempt=1;attempt<=2;attempt++){
-  LIVE_STATUS[name].attempts++;
-  try{
-   const rows=await loadGvizMatrix(name,url);
-   if(rows.length||name==='eventExemptions'){
-    LIVE_STATUS[name]={status:'Loaded',rows:rows.length,error:'',source:'GViz',attempts:LIVE_STATUS[name].attempts};
-    return rows;
+   lastError=e?.message||'Request failed';
+   if(attempt<4){
+    setStrictLoading('Loading is taking longer than expected. Retrying automatically…',false);
+    await sleep([1200,2500,4500][attempt-1]||4500);
    }
-   lastError='GViz returned no usable rows';
-  }catch(e){
-   lastError=e?.message||'GViz request failed';
   }
-  if(attempt<2)await sleep(500);
  }
-
- LIVE_STATUS[name]={status:sawReachable?'Empty/Invalid':'Connection Failed',rows:0,error:lastError||'No usable rows returned',source:'',attempts:LIVE_STATUS[name].attempts};
- console.warn('WoA source load failed',name,LIVE_STATUS[name]);
- return [];
+ throw new Error(lastError||'Unable to load data package');
 }
+
 function mapMember(r){return{_id:field(r,['Player ID','ID']),_name:field(r,['Official Player Name','Player Name','Name','Player']),_g:field(r,['Current G-Level','G-Level','G Level']),_vault:num(field(r,['Current Vault Level','Vault Level'])),_might:num(field(r,['Current Might','Might'])),_status:field(r,['Current Status','Status'])||'Active',_join:field(r,['Join Date','Date Joined']),_left:field(r,['Date Left','Left Date'])}}
 function mapEventRow(r){return{_eventId:field(r,['Event ID','EventID']),_event:field(r,['Event Date','Date','Week']),_available:num(field(r,['Available Members','Eligible Members'])),_rank:num(field(r,['Rank'])),_name:field(r,['Player Name','Official Player Name','Name','Player']),_id:field(r,['Player ID','ID']),_g:field(r,['G-Level','G Level','Current G-Level']),_vault:num(field(r,['Vault Level','Current Vault Level'])),_might:num(field(r,['Current Might','Might'])),_target:num(field(r,['Target','Required','Minimum'])),_score:num(field(r,['Result / Score','Score','Points','Essence','Result','Value'])),_status:field(r,['Result Status','Status','Current Status']),_buildTime:field(r,['Local Build Time','Build Time']),_resetOffset:field(r,['Reset Offset']),_utcOffset:field(r,['UTC Offset']),_chests:num(field(r,['Chests','Chest Count']))}}
 function mapEventSetup(r){return{_id:field(r,['Event ID','EventID']),_name:field(r,['Event Name','Name']),_type:field(r,['Event Type','Type']),_date:field(r,['Event Date','Date']),_target:num(field(r,['Target','Default Target'])),_available:num(field(r,['Available Members','Eligible Members']))}}
@@ -243,33 +114,11 @@ async function initLive(){
        retryBtn=document.getElementById('strictRetryBtn');
  try{
   if(retryBtn)retryBtn.onclick=()=>initLive();
-  searchMsg.textContent='Loading and verifying live intelligence…';
+  setStrictLoading('Loading intelligence data…',false);
+  searchMsg.textContent='Loading and verifying intelligence data…';
   app.innerHTML='';
 
-  let raw={},missing=Object.keys(STRICT_REQUIRED_SOURCES);
-
-  for(let round=1;round<=STRICT_MAX_ROUNDS;round++){
-   setStrictLoading(round===1?'Loading intelligence data…':'Retrying intelligence data…',[],false);
-
-   // Only required production datasets are fetched. Successful datasets are never re-requested.
-   const sources=round===1?Object.keys(STRICT_REQUIRED_SOURCES):missing;
-   await loadSourceBatch(sources,raw);
-
-   missing=strictMissingSources(raw);
-   if(!missing.length)break;
-
-   if(round<STRICT_MAX_ROUNDS){
-    const d=STRICT_RETRY_DELAYS[Math.min(round-1,STRICT_RETRY_DELAYS.length-1)];
-    setStrictLoading('Loading is taking longer than expected. Retrying automatically…',[],false);
-    await sleep(d);
-   }
-  }
-
-  if(missing.length){
-   console.error('WoA strict startup failed',missing.map(k=>({source:k,status:LIVE_STATUS[k]})));
-   blockStrictDashboard();
-   return;
-  }
+  const raw=await fetchCachedPayload();
 
   state.data={
    members:(raw.members||[]).map(mapMember).filter(r=>r._name),
@@ -284,28 +133,19 @@ async function initLive(){
    eventExemptions:(raw.eventExemptions||[]).map(mapEventExemption).filter(r=>(r._id||r._name)&&r._reason)
   };
 
-  // Final integrity check. An empty Exemptions sheet is valid; the other operational datasets must contain usable records.
-  const checks={
-   members:state.data.members,eventSetup:state.data.eventSetup,growth:state.data.growthRaw,
-   tinman:state.data.tinman,darkOmens:state.data.darkOmens,trials:state.data.trials,
-   ragnarok:state.data.ragnarok,chestpoints:state.data.chestpoints,vaults:state.data.vaults
-  };
-  const mappedMissing=Object.entries(checks).filter(([,rows])=>!Array.isArray(rows)||rows.length===0).map(([k])=>k);
-  if(mappedMissing.length){
-   console.error('WoA mapped-data integrity check failed',mappedMissing);
-   blockStrictDashboard();
-   return;
-  }
+  const requiredMapped=['members','eventSetup','growthRaw','tinman','darkOmens','trials','ragnarok','chestpoints','vaults'];
+  const missing=requiredMapped.filter(k=>!Array.isArray(state.data[k])||state.data[k].length===0);
+  if(missing.length)throw new Error('Mapped data package is incomplete');
 
   setupControls();
   renderAll();
   enableAutomaticLayout();
   updateHealthWarnings();
-  searchMsg.textContent='Live intelligence synchronized. All required data is loaded and verified.';
+  searchMsg.textContent='Intelligence synchronized. All required data is loaded and verified.';
   unlockStrictDashboard();
 
  }catch(e){
-  console.error('WoA startup error',e);
+  console.error('WoA cached-data startup error',e);
   blockStrictDashboard();
  }
 }
