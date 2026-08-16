@@ -42,7 +42,7 @@ label{display:block;font-size:11px;color:var(--muted);font-weight:900;text-trans
 <div id="strictLoadingOverlay" class="strict-loading-overlay"><div id="strictLoadingCard" class="strict-loading-card">
 <div class="strict-spinner"></div><h2 class="strict-loading-title">Loading WoA Intelligence</h2>
 <p class="strict-loading-text">Please wait while all required live data is loaded and verified.</p>
-<div id="strictLoadingStatus" class="strict-loading-status">Connecting to all live modules…</div>
+<div id="strictLoadingStatus" class="strict-loading-status">Loading intelligence data…</div>
 <div id="strictLoadingModules" class="strict-loading-modules"></div>
 <button id="strictRetryBtn" class="strict-retry-btn" type="button">Retry Loading</button>
 </div></div>
@@ -72,9 +72,9 @@ const STRICT_RETRY_DELAYS=[2000,5000,8000],STRICT_MAX_ROUNDS=4;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function strictSourceHealthy(source,raw){const i=LIVE_STATUS[source];return !!(i&&i.status==='Loaded'&&Array.isArray(raw?.[source])&&raw[source].length>0)}
 function strictMissingSources(raw){return Object.keys(STRICT_REQUIRED_SOURCES).filter(s=>!strictSourceHealthy(s,raw))}
-function setStrictLoading(message,missing=[],failed=false){const o=document.getElementById('strictLoadingOverlay'),c=document.getElementById('strictLoadingCard'),s=document.getElementById('strictLoadingStatus'),m=document.getElementById('strictLoadingModules');if(!o)return;o.classList.remove('hidden');if(c)c.classList.toggle('strict-failed',!!failed);if(s)s.textContent=message;if(m)m.innerHTML=missing.length?'<strong>Still waiting for:</strong> '+missing.map(k=>esc(STRICT_REQUIRED_SOURCES[k]||k)).join(', '):'Verifying all required live modules.'}
+function setStrictLoading(message,missing=[],failed=false){const o=document.getElementById('strictLoadingOverlay'),c=document.getElementById('strictLoadingCard'),s=document.getElementById('strictLoadingStatus'),m=document.getElementById('strictLoadingModules');if(!o)return;o.classList.remove('hidden');if(c)c.classList.toggle('strict-failed',!!failed);if(s)s.textContent=message;if(m)m.innerHTML=''}
 function unlockStrictDashboard(){document.getElementById('strictLoadingOverlay')?.classList.add('hidden')}
-function blockStrictDashboard(missing){setStrictLoading('Live intelligence could not be fully loaded. The dashboard is blocked to prevent members from relying on incomplete data. Please refresh your browser or retry loading.',missing,true);document.getElementById('searchMsg').textContent='Live intelligence is unavailable until all required modules load successfully.'}
+function blockStrictDashboard(missing){setStrictLoading('Failed to load all intelligence data. Please retry.',[],true);document.getElementById('searchMsg').textContent='Unable to load all intelligence data.'}
 function parseCSVMatrix(text){const rows=[];let row=[],cur='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cur+='"';i++}else if(c==='"'){q=!q}else if(c===','&&!q){row.push(cur);cur=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cur);if(row.some(x=>clean(x)!==''))rows.push(row);row=[];cur=''}else cur+=c}row.push(cur);if(row.some(x=>clean(x)!==''))rows.push(row);return rows}
 function canonicalHeader(s){return clean(s).toLowerCase().replace(/[^a-z0-9]+/g,' ')}
 function headerScore(row){const joined=row.map(canonicalHeader).join('|');const tokens=['player','player name','official player name','player id','event id','event date','current g level','g level','vault level','result score','score','points','target','rank','current status','current might','might','week'];return tokens.reduce((a,t)=>a+(joined.includes(t)?1:0),0)}
@@ -202,7 +202,7 @@ async function initLive(){
   let raw={},missing=Object.keys(STRICT_REQUIRED_SOURCES);
 
   for(let round=1;round<=STRICT_MAX_ROUNDS;round++){
-   setStrictLoading(round===1?'Connecting to all required live modules…':`Retry ${round-1} of ${STRICT_MAX_ROUNDS-1}: fetching missing live modules again…`,missing,false);
+   setStrictLoading(round===1?'Loading intelligence data…':`Retrying intelligence data…`,missing,false);
 
    const sources=round===1
     ?Object.keys(CONFIG)
@@ -216,7 +216,7 @@ async function initLive(){
 
    if(round<STRICT_MAX_ROUNDS){
     const d=STRICT_RETRY_DELAYS[Math.min(round-1,STRICT_RETRY_DELAYS.length-1)];
-    setStrictLoading(`Some live modules did not load. Waiting ${Math.round(d/1000)} seconds before retrying automatically…`,missing,false);
+    setStrictLoading(`Loading is taking longer than expected. Retrying automatically…`,[],false);
     await sleep(d);
    }
   }
