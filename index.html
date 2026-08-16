@@ -77,13 +77,13 @@ const STRICT_REQUIRED_SOURCES={
  eventExemptions:'Event Exemptions'
 };
 const STRICT_ALLOW_EMPTY=new Set(['eventExemptions']);
-const STRICT_RETRY_DELAYS=[2000,4500,7000],STRICT_MAX_ROUNDS=4,LOAD_CONCURRENCY=3;
+const STRICT_RETRY_DELAYS=[2500,5000,8000],STRICT_MAX_ROUNDS=4,LOAD_CONCURRENCY=2;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 function strictSourceHealthy(source,raw){
  const info=LIVE_STATUS[source];
  if(!info||info.status!=='Loaded')return false;
- if(STRICT_ALLOW_EMPTY.has(source))return Array.isArray(raw?.[source]);
+ if(source==='eventExemptions')return Array.isArray(raw?.[source]);
  return Array.isArray(raw?.[source])&&raw[source].length>0;
 }
 function strictMissingSources(raw){
@@ -120,25 +120,6 @@ function parseCSVMatrix(text){const rows=[];let row=[],cur='',q=false;for(let i=
 function canonicalHeader(s){return clean(s).toLowerCase().replace(/[^a-z0-9]+/g,' ')}
 function headerScore(row){const joined=row.map(canonicalHeader).join('|');const tokens=['player','player name','official player name','player id','event id','event date','current g level','g level','vault level','result score','score','points','target','rank','current status','current might','might','week'];return tokens.reduce((a,t)=>a+(joined.includes(t)?1:0),0)}
 
-function sourceMatrixValid(name,matrix){
- if(!Array.isArray(matrix)||!matrix.length)return false;
- const rows=matrix.slice(0,Math.min(60,matrix.length)).map(r=>r.map(canonicalHeader));
- const has=(row,terms)=>terms.some(t=>row.includes(t));
- for(const row of rows){
-  if(name==='members' && has(row,['official player name','player name','player']) && has(row,['player id','current status','g level','current g level']))return true;
-  if(name==='eventSetup' && has(row,['event id']) && has(row,['event name','event date','date']))return true;
-  if(name==='growth' && row.includes('week') && row.includes('player') && row.includes('might'))return true;
-  if(name==='eventExemptions' && has(row,['player name','official player name','player','player id']) && has(row,['reason','exemption reason','from date','event id','event name']))return true;
-  if(['tinman','darkOmens','trials','ragnarok','chestpoints','vaults'].includes(name)){
-   const player=has(row,['player name','official player name','player']);
-   const event=has(row,['event id','event date','date']);
-   const result=has(row,['result score','score','points','essence','result','vault level','current vault level']);
-   if(player&&event&&result)return true;
-  }
- }
- return false;
-}
-
 function rowsToObjects(matrix,name=''){
  if(!matrix||!matrix.length)return[];
  if(name==='eventExemptions'){
@@ -170,75 +151,83 @@ function normalizeCell(v){if(v instanceof Date&&!isNaN(v))return v.toISOString()
 function sheetMeta(url){const gid=(url.match(/[?&]gid=(\d+)/)||[])[1]||'0';const pub=(url.match(/\/d\/e\/([^/]+)\//)||[])[1];return{pub,gid}}
 function loadGvizMatrix(name,url){return new Promise(resolve=>{
  const m=sheetMeta(url);
- if(!m.pub)return resolve({ok:false,rows:[],error:'Invalid published sheet URL'});
+ if(!m.pub)return resolve([]);
  const cb='__woa_live_'+name.replace(/\W/g,'_')+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
  let done=false,script=null,timer=null;
- const finish=result=>{
+ const finish=rows=>{
   if(done)return;
   done=true;
   if(timer)clearTimeout(timer);
   try{delete window[cb]}catch(e){}
   if(script&&script.parentNode)script.parentNode.removeChild(script);
-  resolve(result);
+  resolve(rows||[]);
  };
  window[cb]=resp=>{
   try{
    const matrix=(resp?.table?.rows||[]).map(r=>(r.c||[]).map(c=>c?(c.f??c.v??''):''));
-   if(!sourceMatrixValid(name,matrix))return finish({ok:false,rows:[],error:'GViz schema validation failed'});
-   finish({ok:true,rows:rowsToObjects(matrix,name),error:''});
-  }catch(e){finish({ok:false,rows:[],error:e?.message||'GViz parse failed'})}
+   finish(rowsToObjects(matrix,name));
+  }catch(e){
+   console.warn('GViz parse failed',name,e);
+   finish([]);
+  }
  };
  script=document.createElement('script');
- script.onerror=()=>finish({ok:false,rows:[],error:'GViz request failed'});
+ script.onerror=()=>finish([]);
  script.src=`https://docs.google.com/spreadsheets/d/e/${m.pub}/gviz/tq?gid=${m.gid}&headers=0&tqx=out:json;responseHandler:${cb}&cacheBust=${Date.now()}`;
  document.body.appendChild(script);
- timer=setTimeout(()=>finish({ok:false,rows:[],error:'GViz request timed out'}),15000);
+ timer=setTimeout(()=>finish([]),15000);
 })}
-
-async function loadCsvOnce(name,url){
- try{
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),15000);
-  const sep=url.includes('?')?'&':'?';
-  const res=await fetch(url+sep+'cacheBust='+Date.now(),{cache:'no-store',signal:ctrl.signal,redirect:'follow'});
-  clearTimeout(timer);
-  if(!res.ok)return {ok:false,rows:[],error:'CSV HTTP '+res.status};
-  const txt=await res.text();
-  if(/^\s*</.test(txt))return {ok:false,rows:[],error:'CSV returned HTML'};
-  const matrix=parseCSVMatrix(txt);
-  if(!sourceMatrixValid(name,matrix))return {ok:false,rows:[],error:'CSV schema validation failed'};
-  return {ok:true,rows:rowsToObjects(matrix,name),error:''};
- }catch(e){
-  return {ok:false,rows:[],error:e?.name==='AbortError'?'CSV request timed out':(e?.message||'CSV request failed')};
- }
-}
 
 async function loadSheet(name,url){
  LIVE_STATUS[name]={status:'Loading',rows:0,error:'',source:'',attempts:0};
+ let lastError='',sawReachable=false;
 
- // JSONP/GViz first: avoids browser CORS/redirect sensitivity.
- LIVE_STATUS[name].attempts++;
- const gviz=await loadGvizMatrix(name,url);
- if(gviz.ok){
-  LIVE_STATUS[name]={status:'Loaded',rows:gviz.rows.length,error:'',source:'GViz',attempts:LIVE_STATUS[name].attempts};
-  return gviz.rows;
+ // Proven path from the working production site: CSV first, with retry.
+ for(let attempt=1;attempt<=2;attempt++){
+  LIVE_STATUS[name].attempts++;
+  try{
+   const ctrl=new AbortController();
+   const timer=setTimeout(()=>ctrl.abort(),15000);
+   const sep=url.includes('?')?'&':'?';
+   const res=await fetch(url+sep+'cacheBust='+Date.now()+'_'+attempt,{cache:'no-store',signal:ctrl.signal,redirect:'follow'});
+   clearTimeout(timer);
+
+   if(res.ok){
+    sawReachable=true;
+    const txt=await res.text();
+    if(!/^\s*</.test(txt)){
+     const rows=rowsToObjects(parseCSVMatrix(txt),name);
+     // Empty exemptions is valid; other required sources must return rows.
+     if(rows.length||name==='eventExemptions'){
+      LIVE_STATUS[name]={status:'Loaded',rows:rows.length,error:'',source:'CSV',attempts:LIVE_STATUS[name].attempts};
+      return rows;
+     }
+     lastError='CSV returned no usable rows';
+    }else lastError='CSV returned HTML';
+   }else lastError='CSV HTTP '+res.status;
+  }catch(e){
+   lastError=e?.name==='AbortError'?'CSV request timed out':(e?.message||'CSV request failed');
+  }
+  if(attempt<2)await sleep(500);
  }
 
- // CSV is the secondary path.
- LIVE_STATUS[name].attempts++;
- const csv=await loadCsvOnce(name,url);
- if(csv.ok){
-  LIVE_STATUS[name]={status:'Loaded',rows:csv.rows.length,error:'',source:'CSV',attempts:LIVE_STATUS[name].attempts};
-  return csv.rows;
+ // If browser fetch/redirect fails, use JSONP/GViz exactly as the working site does.
+ for(let attempt=1;attempt<=2;attempt++){
+  LIVE_STATUS[name].attempts++;
+  try{
+   const rows=await loadGvizMatrix(name,url);
+   if(rows.length||name==='eventExemptions'){
+    LIVE_STATUS[name]={status:'Loaded',rows:rows.length,error:'',source:'GViz',attempts:LIVE_STATUS[name].attempts};
+    return rows;
+   }
+   lastError='GViz returned no usable rows';
+  }catch(e){
+   lastError=e?.message||'GViz request failed';
+  }
+  if(attempt<2)await sleep(500);
  }
 
- LIVE_STATUS[name]={
-  status:'Failed',
-  rows:0,
-  error:`${gviz.error}; ${csv.error}`,
-  source:'',
-  attempts:LIVE_STATUS[name].attempts
- };
+ LIVE_STATUS[name]={status:sawReachable?'Empty/Invalid':'Connection Failed',rows:0,error:lastError||'No usable rows returned',source:'',attempts:LIVE_STATUS[name].attempts};
  console.warn('WoA source load failed',name,LIVE_STATUS[name]);
  return [];
 }
